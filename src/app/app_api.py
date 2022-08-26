@@ -19,19 +19,16 @@ class Route (Enum):
     BOOKMARKS = "/bookmarks"
     ADD_BOOKMARK = "/add_bookmark"
     DELETE_BOOKMARK = "/delete_bookmark"
-    IMPORT = "/import"
     ABOUT = "/about"
 
 
 class Page (Enum):
     HOME = "Home"
-    IMPORT = "Import"
     ABOUT = "About"
 
 
 page_to_route = {
     Page.HOME: Route.INDEX.value,
-    Page.IMPORT: Route.IMPORT.value,
     Page.ABOUT: Route.ABOUT.value,
 }
 assert len(Page) == len(page_to_route)
@@ -261,31 +258,6 @@ class AppAPI:
             bookmark_id = request.form.get("bookmark_id")
             status_section, display_section = self.app.delete_bookmark(bookmark_id)
             return _main_page(status_section, display_section, None)
-
-        @self.app_api.route(Route.IMPORT.value, methods=["GET", "POST"])
-        def import_bookmarks():
-            last_op_html = ""
-
-            if request.method == "POST":
-                f = request.files.get("bookmarks_html")
-                err, num_added, num_failed = self.app.import_bookmarks(f)
-                if err:
-                    last_op_html = '<div style="color:red">Failed to import bookmarks</div>'
-                else:
-                    if num_added > 0:
-                        last_op_html += f'<div style="color:green">Imported {num_added} bookmarks</div>'
-                    if num_failed > 0:
-                        last_op_html += \
-                                f'<div style="color:red">Failed to import {num_failed} bookmarks</div>'
-
-            import_section = '<h4>Import bookmarks</h4>'
-            import_section += last_op_html
-            import_section += '<form action="/import" method="post" enctype = "multipart/form-data">'
-            import_section += '<input type="file" name="bookmarks_html">'
-            import_section += '<input type="submit">'
-            import_section += '</form>'
-
-            return _header() + _menu(Page.IMPORT) + import_section
 
         @self.app_api.route(Route.ABOUT.value)
         def about():
