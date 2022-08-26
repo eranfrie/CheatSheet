@@ -30,10 +30,8 @@ class AddBookmarkSection:
         last_section (str | ""): section to be displayed in the "add bookmark" input field.
             empty string ("") to display the placeholder.
     """
-    def __init__(self, last_title, last_description, last_url, last_section):
+    def __init__(self, last_title, last_section):
         self.last_title = last_title
-        self.last_description = last_description
-        self.last_url = last_url
         self.last_section = last_section
 
 

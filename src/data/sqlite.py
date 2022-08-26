@@ -34,18 +34,14 @@ class Sqlite:
         bookmarks_table = \
             f"CREATE TABLE IF NOT EXISTS {BOOKMARKS_TABLE} (" \
             "id integer PRIMARY KEY," \
-            "title text NOT NULL," \
-            "description text," \
-            "url text NOT NULL," \
-            "section text" \
+            "section text," \
+            "title text NOT NULL" \
             ");"
         cursor.execute(bookmarks_table)
         Sqlite._close(conn)
 
     def read_all_bookmarks(self):
         """
-        description (optional field) should be None if missing from the db.
-
         Returns:
             list of dict (each dict is a record from the db)
         """
@@ -59,32 +55,22 @@ class Sqlite:
             raise e
 
         for record in records:
-            # check if description is not empty and not None
-            # (in sqlite, missing field is returned as "None" string)
-            description = None
-            if record[2] and record[2] != "None":
-                description = record[2]
-
             bookmarks.append(
                 {
                     "id": record[0],
-                    "title": record[1],
-                    "description": description,
-                    "url": record[3],
-                    "section": record[4],
+                    "section": record[1],
+                    "title": record[2],
                 }
             )
         Sqlite._close(conn)
         return bookmarks
 
-    def add_bookmark(self, title, description, url, section):
+    def add_bookmark(self, title, section):
         conn, cursor = self._connect()
         try:
-            cursor.execute(f"INSERT INTO {BOOKMARKS_TABLE} (title, description, url, section) "
-                           f"VALUES ('{sql_escape(title)}', "
-                           f"'{sql_escape(description)}', "
-                           f"'{sql_escape(url)}', "
-                           f"'{sql_escape(section)}');")
+            cursor.execute(f"INSERT INTO {BOOKMARKS_TABLE} (section, title) "
+                           f"VALUES ('{sql_escape(section)}', "
+                           f"'{sql_escape(title)}');")
         finally:
             Sqlite._close(conn)
 

@@ -45,25 +45,20 @@ class AppAPI:
 
         def _add_bookmark_form(add_bookmark_section, sections):
             if not add_bookmark_section:
-                add_bookmark_section = AddBookmarkSection("", "", "", "")
+                add_bookmark_section = AddBookmarkSection("", "")
 
-            html = '<h4>Add a new bookmark</h4>'
+            html = '<h4>Add a new snippet</h4>'
             html += f'<form action="/add_bookmark" method="post">' \
-                    f'<input type="text" name="title" placeholder="* Title" ' \
-                    f'size="50" value="{add_bookmark_section.last_title}"><br>' \
-                    f'<input type="text" name="description" placeholder="Description" ' \
-                    f'size="50" value="{add_bookmark_section.last_description}"><br>' \
-                    f'<input type="text" name="url" placeholder="* URL" ' \
-                    f'size="50" value="{add_bookmark_section.last_url}"><br>' \
                     f'<input type="text" name="section" list="sections" placeholder="Section" ' \
-                    f'size="50" value="{add_bookmark_section.last_section}"><br>' \
+                    f'size="80" value="{add_bookmark_section.last_section}"><br>' \
                     f'<datalist id="sections">'
             for s in sections:
                 html += f'<option>{s}</option>'
             html += '</datalist>' \
-                '<input onclick="this.form.submit();this.disabled = true;" type="submit">' \
-                '</form>' \
-                "<hr>"
+                    f'<textarea name="title" rows="15" cols="80"></textarea><br>' \
+                    '<input onclick="this.form.submit();this.disabled = true;" type="submit">' \
+                    '</form>' \
+                    "<hr>"
             return html
 
         def _search_section():
@@ -175,23 +170,17 @@ class AppAPI:
                 prev_section = None
                 for b in display_bookmarks_section.bookmarks:
                     title = highlight(b.escaped_chars_title, b.title_indexes)
-                    description = highlight(b.escaped_chars_description, b.description_indexes)
-                    url = highlight(b.escaped_chars_url, b.url_indexes)
                     section = highlight(b.escaped_chars_section, b.section_indexes)
 
                     if b.section and b.section != prev_section:
                         prev_section = b.section
                         bookmarks_section += f"<br><u><b><b>{section}</b></u><br>"
 
-                    bookmarks_section += f'<button class="btn" onclick="copyURL(\'{b.escaped_url}\')">' \
+                    bookmarks_section += f'<button class="btn" onclick="copyURL(\'{b.escaped_title}\')">' \
                         '<i class="fa fa-copy"></i></button> '
                     bookmarks_section += f'<button class="btn" onclick="deleteBookmark({b.id})">' \
                         '<i class="fa fa-trash"></i></button> '
                     bookmarks_section += f"<b>{title}:</b> "
-                    # description is optional
-                    if b.description:
-                        bookmarks_section += f"{description} "
-                    bookmarks_section += f"<a href={b.escaped_url} target=\"_blank\">{url}</a><br>"
             else:
                 bookmarks_section = \
                     f'<div style="color:red">{display_bookmarks_section.display_bookmarks_err}</div>'
@@ -245,12 +234,10 @@ class AppAPI:
         @self.app_api.route(Route.ADD_BOOKMARK.value, methods=["POST"])
         def add_bookmark():
             title = request.form.get("title")
-            description = request.form.get("description")
-            url = request.form.get("url")
             section = request.form.get("section")
 
             status_section, display_bookmarks_section, add_bookmark_section = \
-                self.app.add_bookmark(title, description, url, section)
+                self.app.add_bookmark(title, section)
             return _main_page(status_section, display_bookmarks_section, add_bookmark_section)
 
         @self.app_api.route(Route.DELETE_BOOKMARK.value, methods=["POST"])

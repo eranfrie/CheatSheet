@@ -2,7 +2,7 @@ from pathlib import Path
 import logging
 
 from utils.html_utils import html_escape
-from server.server_api import InternalException, TitleRequiredException, URLRequiredException
+from server.server_api import InternalException, TitleRequiredException
 from app.app_sections import DisplayBookmarksSection, AddBookmarkSection, StatusSection
 
 
@@ -43,10 +43,6 @@ class App:
                 for b in bookmarks:
                     if b.title_indexes:
                         b.title_indexes.clear()
-                    if b.description_indexes:
-                        b.description_indexes.clear()
-                    if b.url_indexes:
-                        b.url_indexes.clear()
                     if b.section_indexes:
                         b.section_indexes.clear()
 
@@ -54,29 +50,24 @@ class App:
         except InternalException:
             return DisplayBookmarksSection(None, GET_BOOKMARKS_ERR_MSG)
 
-    def add_bookmark(self, title, description, url, section):
-        logger.info("got request to add bookmark: title=%s, desc=%s, url=%s, section=%s",
-                    title, description, url, section)
+    def add_bookmark(self, title, section):
+        logger.info("got request to add bookmark: title=%s, section=%s",
+                    title, section)
 
         try:
-            self.server.add_bookmark(title, description, url, section)
-            add_bookmark_section = AddBookmarkSection("", "", "", "")
+            self.server.add_bookmark(title, section)
+            add_bookmark_section = AddBookmarkSection("", "")
             status_section = StatusSection(True, ADD_BOOKMARK_OK_MSG)
         except InternalException:
-            add_bookmark_section = AddBookmarkSection(title, description, url, section)
+            add_bookmark_section = AddBookmarkSection(title, section)
             status_section = StatusSection(False, ADD_BOOKMARK_ERR_MSG)
         except TitleRequiredException:
-            add_bookmark_section = AddBookmarkSection(title, description, url, section)
+            add_bookmark_section = AddBookmarkSection(title, section)
             status_section = StatusSection(False, ADD_BOOKMARK_TITLE_REQUIRED_MSG)
-        except URLRequiredException:
-            add_bookmark_section = AddBookmarkSection(title, description, url, section)
-            status_section = StatusSection(False, ADD_BOOKMARK_URL_REQUIRED_MSG)
 
         # escape add_bookmark_section
         escaped_add_bookmarks_section = AddBookmarkSection(
             html_escape(add_bookmark_section.last_title),
-            html_escape(add_bookmark_section.last_description),
-            html_escape(add_bookmark_section.last_url),
             html_escape(add_bookmark_section.last_section)
         )
 

@@ -39,15 +39,12 @@ class Server:
             raise InternalException() from e
 
         for j in bookmarks_json:
-            description = j["description"] if j["description"] else ""
             section = j["section"] if j["section"] else ""
             section = section.lower()  # ignore case
             bookmarks.append(
                 Bookmark(
                     j["id"],
                     j["title"],
-                    description,
-                    j["url"],
                     section,
                 )
             )
@@ -64,29 +61,24 @@ class Server:
         pattern = pattern.lower()
         return [b for b in bookmarks if b.match(pattern, is_fuzzy, include_url)]
 
-    def add_bookmark(self, title, description, url, section):
+    def add_bookmark(self, title, section):
         self._invalidate_cache()
 
         # strip input
         title = "" if title is None else title.strip()
-        description = "" if description is None else description.strip()
-        url = "" if url is None else url.strip()
         section = "" if section is None else section.strip()
 
         # input validation
         if not title:
             logger.debug("add bookmark failed - title is required")
             raise TitleRequiredException()
-        if not url:
-            logger.debug("add bookmark failed - url is required")
-            raise URLRequiredException()
 
         try:
-            self.db.add_bookmark(title, description, url, section)
+            self.db.add_bookmark(title, section)
             logger.info("bookmark added successfully")
         except Exception as e:
-            logger.exception("failed to add bookmark to db: title=%s, description=%s, url=%s, section=%s",
-                             title, description, url, section)
+            logger.exception("failed to add bookmark to db: title=%s, section=%s",
+                             title, section)
             raise InternalException() from e
 
     def import_bookmarks(self, filename):
