@@ -1,7 +1,7 @@
 import argparse
 
 
-PROD_NAME = "Bookmarker"
+PROD_NAME = "CheatSheet"
 
 
 def get_options():
