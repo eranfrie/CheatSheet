@@ -165,7 +165,9 @@ class AppAPI:
 
                 prev_section = None
                 for b in display_bookmarks_section.bookmarks:
-                    title = highlight(b.escaped_chars_title, b.title_indexes)
+                    # not using escaping (b.escaped_chars_title) because
+                    # it's not displayed well inside markdown code (```)
+                    title = highlight(b.title, b.title_indexes)
                     md_title = markdown(title,  output_format="html", extensions=["extra"])
                     section = highlight(b.escaped_chars_section, b.section_indexes)
 
