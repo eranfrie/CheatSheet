@@ -3,8 +3,8 @@ import git
 from utils import paths
 
 
-MAJOR = 1
-MINOR = 4
+MAJOR = 0
+MINOR = 8
 
 
 def get_patch():
