@@ -4,7 +4,7 @@ import sqlite3
 
 logger = logging.getLogger()
 
-BOOKMARKS_TABLE = "bookmarks"
+BOOKMARKS_TABLE = "snippets"
 
 
 def sql_escape(text):

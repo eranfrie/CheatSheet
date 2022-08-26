@@ -43,7 +43,7 @@ def main(override_config):
     logger = logging.getLogger()
 
     logger.info("start running")
-    db_filename = Path(output_dir, "bookmarks.db")
+    db_filename = Path(output_dir, "cheatsheet.db")
     db = Sqlite(db_filename)
     server = Server(db)
     app = App(server, output_dir)
