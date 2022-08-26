@@ -2,6 +2,7 @@ import logging
 from enum import Enum
 
 from flask import Flask, request
+from markdown import markdown
 
 from utils import opts, version
 from utils.html_utils import highlight
@@ -170,17 +171,20 @@ class AppAPI:
                 prev_section = None
                 for b in display_bookmarks_section.bookmarks:
                     title = highlight(b.escaped_chars_title, b.title_indexes)
+                    md_title = markdown(title,  output_format="html", extensions=["extra"])
                     section = highlight(b.escaped_chars_section, b.section_indexes)
 
                     if b.section and b.section != prev_section:
                         prev_section = b.section
-                        bookmarks_section += f"<br><u><b><b>{section}</b></u><br>"
+                        bookmarks_section += "<hr><hr>"
+                        bookmarks_section += f"<br><u><b><h1>{section}</h1></b></u>"
 
+                    bookmarks_section += "<hr>"
+                    bookmarks_section += f"<b>{md_title}</b><br>"
                     bookmarks_section += f'<button class="btn" onclick="copyURL(\'{b.escaped_title}\')">' \
                         '<i class="fa fa-copy"></i></button> '
                     bookmarks_section += f'<button class="btn" onclick="deleteBookmark({b.id})">' \
-                        '<i class="fa fa-trash"></i></button> '
-                    bookmarks_section += f"<b>{title}:</b> "
+                        '<i class="fa fa-trash"></i></button>'
             else:
                 bookmarks_section = \
                     f'<div style="color:red">{display_bookmarks_section.display_bookmarks_err}</div>'
