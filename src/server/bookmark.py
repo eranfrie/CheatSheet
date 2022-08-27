@@ -53,7 +53,7 @@ class Bookmark:
             return self.section_lower < other.section_lower
         return self.title_lower < other.title_lower
 
-    def match(self, pattern, is_fuzzy, include_url):
+    def match(self, pattern, is_fuzzy):
         """
         Assumptions:
             pattern is not None
@@ -62,6 +62,4 @@ class Bookmark:
         search_method = is_match if is_fuzzy else _regular_search
         self.title_indexes = search_method(pattern, self.title_lower)
         self.section_indexes = search_method(pattern, self.section_lower)
-        return self.title_indexes is not None or \
-            self.description_indexes is not None or \
-            (self.url_indexes is not None and include_url)
+        return self.title_indexes is not None

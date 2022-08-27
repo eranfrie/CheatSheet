@@ -25,18 +25,17 @@ class App:
         self.server = server
         self.import_bookmarks_filename = Path(output_dir, IMPORT_BOOKMARKS_FILENAME)
 
-    def display_bookmarks(self, pattern, is_fuzzy, include_url):
+    def display_bookmarks(self, pattern, is_fuzzy):
         """
         Args:
             pattern (str | None): a pattern to filter results
             is_fuzzy (bool): whether to perform a fuzzy search or regular search
-            include_url (bool): whether to filter by URL too
 
         Returns:
             display_bookmarks_section: DisplayBookmarksSection object
         """
         try:
-            bookmarks = self.server.get_bookmarks(pattern, is_fuzzy, include_url)
+            bookmarks = self.server.get_bookmarks(pattern, is_fuzzy)
 
             # clean last search
             if not pattern:
@@ -71,7 +70,7 @@ class App:
             html_escape(add_bookmark_section.last_section)
         )
 
-        return status_section, self.display_bookmarks(None, None, None), escaped_add_bookmarks_section
+        return status_section, self.display_bookmarks(None, None), escaped_add_bookmarks_section
 
     def delete_bookmark(self, bookmark_id):
         if self.server.delete_bookmark(bookmark_id):
