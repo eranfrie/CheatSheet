@@ -1,6 +1,10 @@
-# Bookmarker
+# CheatSheet
 
-A productivity tool to manage and browse bookmarks.
+A productivity tool to manage and search snippets.
+
+**NOTE:** This project is forked from [Bookmarker](https://github.com/eranfrie/Bookmarker)
+and was quickly modified to make it work.
+Therefore it contains inaccuracies (variable namings, comments) and broken tests.
 
 
 ## Installation
@@ -16,16 +20,6 @@ A productivity tool to manage and browse bookmarks.
 ```
 python -m venv <route/to/venv-directory>
 source <route/to/venv-directory>/bin/activate
-pip install -r requirements.txt
-```
-
-##### Windows:
-
-1. Create a directory named `venv`
-2. Run:
-```
-python -m venv  <route\to\venv-directory>
-<route\to\venv-directory>\Scripts\activate.bat
 pip install -r requirements.txt
 ```
 

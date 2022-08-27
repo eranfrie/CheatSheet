@@ -79,7 +79,7 @@ class App:
             logger.error("failed to delete bookmark %s", bookmark_id)
             status_section = StatusSection(False, DELETE_BOOKMARK_ERR_MSG)
 
-        return status_section, self.display_bookmarks(None, None, None)
+        return status_section, self.display_bookmarks(None, None)
 
     def import_bookmarks(self, bookmarks_file):
         """

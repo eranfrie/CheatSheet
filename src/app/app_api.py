@@ -162,7 +162,7 @@ class AppAPI:
                     # not using escaping and highlight
                     # because markdown() does escaping
                     md_title = markdown(b.title, extensions=["extra"])
-                    md_title = md_title.replace("<pre>", '<pre style="background-color:gray">')
+                    md_title = md_title.replace("<pre>", '<pre style="background-color:LightGray">')
                     section = highlight(b.escaped_chars_section, b.section_indexes)
 
                     if b.section and b.section != prev_section:
@@ -242,7 +242,7 @@ class AppAPI:
             ver = version.get_version()
             about_section += f'{opts.PROD_NAME} Version {ver}<br/>'
 
-            home_page = "https://github.com/eranfrie/Bookmarker"
+            home_page = "https://github.com/eranfrie/CheatSheet"
             about_section += f'Home page: <a href="{home_page}" target="_blank">{home_page}</a>'
 
             return _header() + _menu(Page.ABOUT) + about_section
