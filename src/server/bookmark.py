@@ -2,23 +2,24 @@ from utils.html_utils import html_escape, split_escaped_text
 from server.fuzzy_search import is_match
 
 
-def _regular_search(pattern, line):
+def _regular_search(pattern, text):
     """
     Assumptions:
         pattern is not None
         pattern is lower case
-        line is lower case
+        text is lower case
 
     Returns:
         indexes (set) of matched indexes
-            if pattern is "fuzzy" contained in line
+            if pattern is contained in text
         None otherwise
     """
-    try:
-        first_indes = line.index(pattern)
-    except ValueError:
-        return None
-    return set(range(first_indes, first_indes + len(pattern)))
+    for line in text.splitlines():
+        try:
+            first_indes = line.index(pattern)
+        except ValueError:
+            return None
+        return set(range(first_indes, first_indes + len(pattern)))
 
 
 # pylint: disable=R0902 (too-many-instance-attributes)
