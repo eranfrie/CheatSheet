@@ -162,7 +162,8 @@ class AppAPI:
                     # not using escaping and highlight
                     # because markdown() does escaping
                     md_title = markdown(b.title, extensions=["extra"])
-                    md_title = md_title.replace("<pre>", '<pre style="background-color:LightGray">')
+                    md_title = md_title.replace("<pre>",
+                        '<pre style="background-color:LightGray; max-width:80%; white-space: pre-wrap;">')
                     section = highlight(b.escaped_chars_section, b.section_indexes)
 
                     if b.section and b.section != prev_section:
