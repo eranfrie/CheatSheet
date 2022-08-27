@@ -56,7 +56,7 @@ class AppAPI:
             for s in sections:
                 html += f'<option>{s}</option>'
             html += '</datalist>' \
-                    f'<textarea name="title" rows="15" cols="80"></textarea><br>' \
+                    f'<textarea name="title" rows="15" cols="80" placeholder="Snippet"></textarea><br>' \
                     '<input onclick="this.form.submit();this.disabled = true;" type="submit">' \
                     '</form>' \
                     "<hr>"
