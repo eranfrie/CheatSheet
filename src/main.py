@@ -46,7 +46,7 @@ def main(override_config):
     db_filename = Path(output_dir, "cheatsheet.db")
     db = Sqlite(db_filename)
     server = Server(db)
-    app = App(server, output_dir)
+    app = App(server)
     AppAPI(app).run(conf["host"], conf["port"])  # blocking
 
 

@@ -9,21 +9,18 @@ from app.app_sections import DisplayBookmarksSection, AddBookmarkSection, Status
 GET_BOOKMARKS_ERR_MSG = "Internal error. Please try again later"
 ADD_BOOKMARK_ERR_MSG = "Internal error: Failed to add a new snippet. Please try again later"
 ADD_BOOKMARK_OK_MSG = "Snippet added successfully"
-ADD_BOOKMARK_TITLE_REQUIRED_MSG = "Error: Title is a required field"
-ADD_BOOKMARK_URL_REQUIRED_MSG = "Error: URL is a required field"
+ADD_BOOKMARK_TITLE_REQUIRED_MSG = "Error: Snippet is a required field"
 
 DELETE_BOOKMARK_OK_MSG = "Snippet deleted successfully"
 DELETE_BOOKMARK_ERR_MSG = "Failed to delete snippet"
 
-IMPORT_BOOKMARKS_FILENAME = "tmp_bookmarks.html"
 
 logger = logging.getLogger()
 
 
 class App:
-    def __init__(self, server, output_dir):
+    def __init__(self, server):
         self.server = server
-        self.import_bookmarks_filename = Path(output_dir, IMPORT_BOOKMARKS_FILENAME)
 
     def display_bookmarks(self, pattern, is_fuzzy):
         """
