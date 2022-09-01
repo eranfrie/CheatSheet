@@ -17,9 +17,9 @@ logger = logging.getLogger()
 
 class Route (Enum):
     INDEX = "/"
-    BOOKMARKS = "/bookmarks"
-    ADD_BOOKMARK = "/add_bookmark"
-    DELETE_BOOKMARK = "/delete_bookmark"
+    BOOKMARKS = "/snippets"
+    ADD_BOOKMARK = "/add_snippet"
+    DELETE_BOOKMARK = "/delete_snippet"
     ABOUT = "/about"
 
 
@@ -49,7 +49,7 @@ class AppAPI:
                 add_bookmark_section = AddBookmarkSection("", "")
 
             html = '<h4>Add a new snippet</h4>'
-            html += f'<form action="/add_bookmark" method="post">' \
+            html += f'<form action="/add_snippet" method="post">' \
                     f'<input type="text" name="section" list="sections" placeholder="Section" ' \
                     f'size="80" value="{add_bookmark_section.last_section}"><br>' \
                     f'<datalist id="sections">'
@@ -82,7 +82,7 @@ class AppAPI:
                     xhttp.onload = function() {
                       document.getElementById("bookmarks_div").innerHTML = this.responseText;
                     }
-                    xhttp.open("GET", "/bookmarks?pattern=" + pattern +
+                    xhttp.open("GET", "/snippets?pattern=" + pattern +
                       "&fuzzy=" + fuzzy);
                     xhttp.send();
                   }
@@ -137,7 +137,7 @@ class AppAPI:
                       {
                         if (confirm('Delete bookmark?')) {
                           var delete_form = document.createElement('form');
-                          delete_form.action='/delete_bookmark';
+                          delete_form.action='/delete_snippet';
                           delete_form.method='POST';
 
                           var inpt=document.createElement('input');
