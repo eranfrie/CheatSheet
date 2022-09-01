@@ -4,7 +4,3 @@ class InternalException(Exception):
 
 class TitleRequiredException(Exception):
     pass
-
-
-class URLRequiredException(Exception):
-    pass

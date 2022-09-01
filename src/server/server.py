@@ -1,8 +1,7 @@
 import logging
 
 from server.bookmark import Bookmark
-from server.chrome_parser import ChromeParser
-from server.server_api import InternalException, TitleRequiredException, URLRequiredException
+from server.server_api import InternalException, TitleRequiredException
 
 
 logger = logging.getLogger()
@@ -80,36 +79,6 @@ class Server:
             logger.exception("failed to add bookmark to db: title=%s, section=%s",
                              title, section)
             raise InternalException() from e
-
-    def import_bookmarks(self, filename):
-        """
-        Raises:
-            Exception: in case of any error
-
-        Returns:
-            num_added
-            num_failed
-        """
-        self._invalidate_cache()
-
-        with open(filename, "r", encoding="utf-8") as f:
-            html_data = f.read()
-
-        bookmarks = ChromeParser().get_bookmarks(html_data)
-        num_added = 0
-        num_failed = 0
-        for b in bookmarks:
-            try:
-                self.add_bookmark(b["title"], "", b["url"], b["section"])
-                num_added += 1
-            # pylint: disable=W0703 (broad-except)
-            except Exception:
-                logger.exception("import bookmark: failed to add bookmark: title=%s, url=%s, section=%s",
-                                 b["title"], b["url"], b["section"])
-                num_failed += 1
-
-        logger.info("import bookmarks - added=%s, failed=%s", num_added, num_failed)
-        return num_added, num_failed
 
     def delete_bookmark(self, bookmark_id):
         """
