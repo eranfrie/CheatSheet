@@ -1,7 +1,7 @@
 import logging
 
 from server.bookmark import Bookmark
-from server.server_api import InternalException, TitleRequiredException
+from server.server_api import InternalException, SnippetRequiredException
 
 
 logger = logging.getLogger()
@@ -43,7 +43,7 @@ class Server:
             bookmarks.append(
                 Bookmark(
                     j["id"],
-                    j["title"],
+                    j["snippet"],
                     section,
                 )
             )
@@ -60,24 +60,23 @@ class Server:
         pattern = pattern.lower()
         return [b for b in bookmarks if b.match(pattern, is_fuzzy)]
 
-    def add_bookmark(self, title, section):
+    def add_bookmark(self, snippet, section):
         self._invalidate_cache()
 
         # strip input
-        title = "" if title is None else title.strip()
+        snippet = "" if snippet is None else snippet.strip()
         section = "" if section is None else section.strip()
 
         # input validation
-        if not title:
-            logger.debug("add bookmark failed - title is required")
-            raise TitleRequiredException()
+        if not snippet:
+            logger.debug("add bookmark failed - snippet is required")
+            raise SnippetRequiredException()
 
         try:
-            self.db.add_bookmark(title, section)
+            self.db.add_bookmark(snippet, section)
             logger.info("bookmark added successfully")
         except Exception as e:
-            logger.exception("failed to add bookmark to db: title=%s, section=%s",
-                             title, section)
+            logger.exception("failed to add bookmark to db: snippet=%s, section=%s", snippet, section)
             raise InternalException() from e
 
     def delete_bookmark(self, bookmark_id):

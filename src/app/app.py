@@ -1,14 +1,14 @@
 import logging
 
 from utils.html_utils import html_escape
-from server.server_api import InternalException, TitleRequiredException
+from server.server_api import InternalException, SnippetRequiredException
 from app.app_sections import DisplayBookmarksSection, AddBookmarkSection, StatusSection
 
 
 GET_BOOKMARKS_ERR_MSG = "Internal error. Please try again later"
 ADD_BOOKMARK_ERR_MSG = "Internal error: Failed to add a new snippet. Please try again later"
 ADD_BOOKMARK_OK_MSG = "Snippet added successfully"
-ADD_BOOKMARK_TITLE_REQUIRED_MSG = "Error: Snippet is a required field"
+ADD_BOOKMARK_SNIPPET_REQUIRED_MSG = "Error: Snippet is a required field"
 
 DELETE_BOOKMARK_OK_MSG = "Snippet deleted successfully"
 DELETE_BOOKMARK_ERR_MSG = "Failed to delete snippet"
@@ -36,8 +36,8 @@ class App:
             # clean last search
             if not pattern:
                 for b in bookmarks:
-                    if b.title_indexes:
-                        b.title_indexes.clear()
+                    if b.snippet_indexes:
+                        b.snippet_indexes.clear()
                     if b.section_indexes:
                         b.section_indexes.clear()
 
@@ -45,24 +45,24 @@ class App:
         except InternalException:
             return DisplayBookmarksSection(None, GET_BOOKMARKS_ERR_MSG)
 
-    def add_bookmark(self, title, section):
-        logger.info("got request to add bookmark: title=%s, section=%s",
-                    title, section)
+    def add_bookmark(self, snippet, section):
+        logger.info("got request to add bookmark: snippet=%s, section=%s",
+                    snippet, section)
 
         try:
-            self.server.add_bookmark(title, section)
+            self.server.add_bookmark(snippet, section)
             add_bookmark_section = AddBookmarkSection("", "")
             status_section = StatusSection(True, ADD_BOOKMARK_OK_MSG)
         except InternalException:
-            add_bookmark_section = AddBookmarkSection(title, section)
+            add_bookmark_section = AddBookmarkSection(snippet, section)
             status_section = StatusSection(False, ADD_BOOKMARK_ERR_MSG)
-        except TitleRequiredException:
-            add_bookmark_section = AddBookmarkSection(title, section)
-            status_section = StatusSection(False, ADD_BOOKMARK_TITLE_REQUIRED_MSG)
+        except SnippetRequiredException:
+            add_bookmark_section = AddBookmarkSection(snippet, section)
+            status_section = StatusSection(False, ADD_BOOKMARK_SNIPPET_REQUIRED_MSG)
 
         # escape add_bookmark_section
         escaped_add_bookmarks_section = AddBookmarkSection(
-            html_escape(add_bookmark_section.last_title),
+            html_escape(add_bookmark_section.last_snippet),
             html_escape(add_bookmark_section.last_section)
         )
 

@@ -2,5 +2,5 @@ class InternalException(Exception):
     pass
 
 
-class TitleRequiredException(Exception):
+class SnippetRequiredException(Exception):
     pass

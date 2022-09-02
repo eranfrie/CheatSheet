@@ -62,10 +62,10 @@ class TestE2eBase:
             assert f"Total: {expected_num_bookmarks}" in response.text
             assert self._count_bookmarks_in_db() == expected_num_bookmarks
 
-    def _add_bookmark_to_db(self, title, section):
+    def _add_bookmark_to_db(self, snippet, section):
         db_filename = Path(OUTPUT_DIR, DB_FILENAME)
         db = Sqlite(db_filename)
-        db.add_bookmark(title, section)
+        db.add_bookmark(snippet, section)
 
     def _count_bookmarks_in_db(self):
         db_filename = Path(OUTPUT_DIR, DB_FILENAME)
@@ -82,10 +82,10 @@ class TestE2eBase:
         except FileNotFoundError:
             pass
 
-    def _add_bookmark(self, title, section):
+    def _add_bookmark(self, snippet, section):
         payload = {}
-        if title:
-            payload["title"] = title
+        if snippet:
+            payload["snippet"] = snippet
         if section:
             payload["section"] = section
         response = requests.post(URL.ADD_BOOKMARK.value, data=payload)

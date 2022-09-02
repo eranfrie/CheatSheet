@@ -21,14 +21,14 @@ class TestE2eBookmarksEndpoint(TestE2eBase):
         assert app.GET_BOOKMARKS_ERR_MSG not in response.text
 
     def test_get_one_bookmark(self):
-        self._add_bookmark_to_db("test_title_1",
+        self._add_bookmark_to_db("test_snippet_1",
                                  "test_section_1")
         response = requests.get(URL.BOOKMARKS.value)
         self._compare_num_bookmarks(response, 1)
 
     def test_get_two_bookmark(self):
-        self._add_bookmark_to_db("test_title_1", "test_section_1")
-        self._add_bookmark_to_db("test_title_2", "test_section_2")
+        self._add_bookmark_to_db("test_snippet_1", "test_section_1")
+        self._add_bookmark_to_db("test_snippet_2", "test_section_2")
         response = requests.get(URL.BOOKMARKS.value)
         self._compare_num_bookmarks(response, 2)
 
@@ -41,22 +41,22 @@ class TestE2eBookmarksEndpoint(TestE2eBase):
         assert response.text.count(app.GET_BOOKMARKS_ERR_MSG) == 1
 
     def test_search_no_results(self):
-        self._add_bookmark_to_db("test_title_1", "test_section_1")
-        self._add_bookmark_to_db("test_title_2", "test_section_2")
+        self._add_bookmark_to_db("test_snippet_1", "test_section_1")
+        self._add_bookmark_to_db("test_snippet_2", "test_section_2")
         response = requests.get(URL.BOOKMARKS.value)
         self._compare_num_bookmarks(response, 2)
 
-        pattern = "test_title_3"
+        pattern = "test_snippet_3"
         response = requests.get(URL.BOOKMARKS.value, params={"pattern": pattern})
         self._compare_num_bookmarks(response, 0, db_avail=False)
         assert response.text.count("mark>") == 0
 
     def test_search_one_results(self):
-        self._add_bookmark_to_db("test_title_1", "test_section_1")
-        self._add_bookmark_to_db("test_title_2", "test_section_2")
+        self._add_bookmark_to_db("test_snippet_1", "test_section_1")
+        self._add_bookmark_to_db("test_snippet_2", "test_section_2")
         response = requests.get(URL.BOOKMARKS.value)
         self._compare_num_bookmarks(response, 2)
 
-        pattern = "test_title_1"
+        pattern = "test_snippet_1"
         response = requests.get(URL.BOOKMARKS.value, params={"pattern": pattern})
         self._compare_num_bookmarks(response, 1, db_avail=False)

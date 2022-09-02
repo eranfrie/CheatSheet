@@ -17,7 +17,7 @@ class TestFuzzySearch:
         for v, b in zip(sorted_values, bookmarks):
             assert v.lower() == b.section  # lower() because section is always lower
 
-    def test_sort_by_title(self):
+    def test_sort_by_snippet(self):
         bookmarks = []
         for v in values:
             bookmarks.append(
@@ -25,4 +25,4 @@ class TestFuzzySearch:
             )
         bookmarks.sort()
         for v, b in zip(sorted_values, bookmarks):
-            assert v == b.title
+            assert v == b.snippet

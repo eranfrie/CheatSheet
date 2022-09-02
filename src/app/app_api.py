@@ -56,8 +56,8 @@ class AppAPI:
             for s in sections:
                 html += f'<option>{s}</option>'
             html += '</datalist>' \
-                    '<textarea name="title" rows="15" cols="80" placeholder="Snippet"' \
-                    f'value="{add_bookmark_section.last_title}"></textarea><br>' \
+                    '<textarea name="snippet" rows="15" cols="80" placeholder="Snippet"' \
+                    f'value="{add_bookmark_section.last_snippet}"></textarea><br>' \
                     '<input onclick="this.form.submit();this.disabled = true;" type="submit">' \
                     '</form>' \
                     "<hr>"
@@ -162,8 +162,8 @@ class AppAPI:
                 for b in display_bookmarks_section.bookmarks:
                     # not using escaping and highlight
                     # because markdown() does escaping
-                    md_title = markdown(b.title, extensions=["extra"])
-                    md_title = md_title.replace(
+                    md_snippet = markdown(b.snippet, extensions=["extra"])
+                    md_snippet = md_snippet.replace(
                         "<pre>",
                         '<pre style="background-color:LightGray; max-width:80%; white-space: pre-wrap;">')
                     section = highlight(b.escaped_chars_section, b.section_indexes)
@@ -174,7 +174,7 @@ class AppAPI:
                         bookmarks_section += f"<br><u><b><h1>{section}</h1></b></u>"
 
                     bookmarks_section += "<hr>"
-                    bookmarks_section += f"<b>{md_title}</b><br>"
+                    bookmarks_section += f"<b>{md_snippet}</b><br>"
                     bookmarks_section += f'<button class="btn" onclick="deleteBookmark({b.id})">' \
                         '<i class="fa fa-trash"></i></button>'
             else:
@@ -225,11 +225,11 @@ class AppAPI:
 
         @self.app_api.route(Route.ADD_BOOKMARK.value, methods=["POST"])
         def add_bookmark():
-            title = request.form.get("title")
+            snippet = request.form.get("snippet")
             section = request.form.get("section")
 
             status_section, display_bookmarks_section, add_bookmark_section = \
-                self.app.add_bookmark(title, section)
+                self.app.add_bookmark(snippet, section)
             return _main_page(status_section, display_bookmarks_section, add_bookmark_section)
 
         @self.app_api.route(Route.DELETE_BOOKMARK.value, methods=["POST"])

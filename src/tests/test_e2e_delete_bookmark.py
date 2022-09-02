@@ -6,7 +6,7 @@ from tests.test_e2e_base import TestE2eBase, URL
 
 class TestE2eDeleteBookmark(TestE2eBase):
     def test_delete_bookmark_success(self):
-        self._add_bookmark_to_db("test_title", "test_section")
+        self._add_bookmark_to_db("test_snippet", "test_section")
         assert self._count_bookmarks_in_db() == 1
 
         bookmark_id = 1
@@ -18,7 +18,7 @@ class TestE2eDeleteBookmark(TestE2eBase):
 
     def test_delete_2_bookmarks_success(self):
         for _ in range(5):
-            self._add_bookmark_to_db("test_title", "test_section")
+            self._add_bookmark_to_db("test_snippet", "test_section")
         assert self._count_bookmarks_in_db() == 5
 
         bookmark_id = 2
@@ -36,7 +36,7 @@ class TestE2eDeleteBookmark(TestE2eBase):
         assert response.text.count(app.DELETE_BOOKMARK_OK_MSG) == 1
 
     def test_delete_bookmark_fail(self):
-        self._add_bookmark_to_db("test_title", "test_section")
+        self._add_bookmark_to_db("test_snippet", "test_section")
         assert self._count_bookmarks_in_db() == 1
 
         bookmark_id = 1234
