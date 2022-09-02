@@ -56,7 +56,8 @@ class AppAPI:
             for s in sections:
                 html += f'<option>{s}</option>'
             html += '</datalist>' \
-                    '<textarea name="title" rows="15" cols="80" placeholder="Snippet"></textarea><br>' \
+                    '<textarea name="title" rows="15" cols="80" placeholder="Snippet"' \
+                    f'value="{add_bookmark_section.last_title}"></textarea><br>' \
                     '<input onclick="this.form.submit();this.disabled = true;" type="submit">' \
                     '</form>' \
                     "<hr>"
@@ -162,7 +163,8 @@ class AppAPI:
                     # not using escaping and highlight
                     # because markdown() does escaping
                     md_title = markdown(b.title, extensions=["extra"])
-                    md_title = md_title.replace("<pre>",
+                    md_title = md_title.replace(
+                        "<pre>",
                         '<pre style="background-color:LightGray; max-width:80%; white-space: pre-wrap;">')
                     section = highlight(b.escaped_chars_section, b.section_indexes)
 

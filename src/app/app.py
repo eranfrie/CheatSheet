@@ -1,4 +1,3 @@
-from pathlib import Path
 import logging
 
 from utils.html_utils import html_escape
