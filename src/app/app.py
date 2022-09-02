@@ -2,16 +2,16 @@ import logging
 
 from utils.html_utils import html_escape
 from server.server_api import InternalException, SnippetRequiredException
-from app.app_sections import DisplayBookmarksSection, AddBookmarkSection, StatusSection
+from app.app_sections import DisplayCheatsheetsSection, AddCheatsheetSection, StatusSection
 
 
-GET_BOOKMARKS_ERR_MSG = "Internal error. Please try again later"
-ADD_BOOKMARK_ERR_MSG = "Internal error: Failed to add a new snippet. Please try again later"
-ADD_BOOKMARK_OK_MSG = "Snippet added successfully"
-ADD_BOOKMARK_SNIPPET_REQUIRED_MSG = "Error: Snippet is a required field"
+GET_CHEATSHEETS_ERR_MSG = "Internal error. Please try again later"
+ADD_CHEATSHEET_ERR_MSG = "Internal error: Failed to add a new snippet. Please try again later"
+ADD_CHEATSHEET_OK_MSG = "Snippet added successfully"
+ADD_CHEATSHEET_SNIPPET_REQUIRED_MSG = "Error: Snippet is a required field"
 
-DELETE_BOOKMARK_OK_MSG = "Snippet deleted successfully"
-DELETE_BOOKMARK_ERR_MSG = "Failed to delete snippet"
+DELETE_CHEATSHEET_OK_MSG = "Snippet deleted successfully"
+DELETE_CHEATSHEET_ERR_MSG = "Failed to delete snippet"
 
 
 logger = logging.getLogger()
@@ -21,58 +21,58 @@ class App:
     def __init__(self, server):
         self.server = server
 
-    def display_bookmarks(self, pattern, is_fuzzy):
+    def display_cheatsheets(self, pattern, is_fuzzy):
         """
         Args:
             pattern (str | None): a pattern to filter results
             is_fuzzy (bool): whether to perform a fuzzy search or regular search
 
         Returns:
-            display_bookmarks_section: DisplayBookmarksSection object
+            display_cheatsheets_section: DisplayCheatsheetsSection object
         """
         try:
-            bookmarks = self.server.get_bookmarks(pattern, is_fuzzy)
+            cheatsheets = self.server.get_cheatsheets(pattern, is_fuzzy)
 
             # clean last search
             if not pattern:
-                for b in bookmarks:
+                for b in cheatsheets:
                     if b.snippet_indexes:
                         b.snippet_indexes.clear()
                     if b.section_indexes:
                         b.section_indexes.clear()
 
-            return DisplayBookmarksSection(bookmarks, None)
+            return DisplayCheatsheetsSection(cheatsheets, None)
         except InternalException:
-            return DisplayBookmarksSection(None, GET_BOOKMARKS_ERR_MSG)
+            return DisplayCheatsheetsSection(None, GET_CHEATSHEETS_ERR_MSG)
 
-    def add_bookmark(self, snippet, section):
-        logger.info("got request to add bookmark: snippet=%s, section=%s",
+    def add_cheatsheet(self, snippet, section):
+        logger.info("got request to add cheatsheet: snippet=%s, section=%s",
                     snippet, section)
 
         try:
-            self.server.add_bookmark(snippet, section)
-            add_bookmark_section = AddBookmarkSection("", "")
-            status_section = StatusSection(True, ADD_BOOKMARK_OK_MSG)
+            self.server.add_cheatsheet(snippet, section)
+            add_cheatsheet_section = AddCheatsheetSection("", "")
+            status_section = StatusSection(True, ADD_CHEATSHEET_OK_MSG)
         except InternalException:
-            add_bookmark_section = AddBookmarkSection(snippet, section)
-            status_section = StatusSection(False, ADD_BOOKMARK_ERR_MSG)
+            add_cheatsheet_section = AddCheatsheetSection(snippet, section)
+            status_section = StatusSection(False, ADD_CHEATSHEET_ERR_MSG)
         except SnippetRequiredException:
-            add_bookmark_section = AddBookmarkSection(snippet, section)
-            status_section = StatusSection(False, ADD_BOOKMARK_SNIPPET_REQUIRED_MSG)
+            add_cheatsheet_section = AddCheatsheetSection(snippet, section)
+            status_section = StatusSection(False, ADD_CHEATSHEET_SNIPPET_REQUIRED_MSG)
 
-        # escape add_bookmark_section
-        escaped_add_bookmarks_section = AddBookmarkSection(
-            html_escape(add_bookmark_section.last_snippet),
-            html_escape(add_bookmark_section.last_section)
+        # escape add_cheatsheet_section
+        escaped_add_cheatsheets_section = AddCheatsheetSection(
+            html_escape(add_cheatsheet_section.last_snippet),
+            html_escape(add_cheatsheet_section.last_section)
         )
 
-        return status_section, self.display_bookmarks(None, None), escaped_add_bookmarks_section
+        return status_section, self.display_cheatsheets(None, None), escaped_add_cheatsheets_section
 
-    def delete_bookmark(self, bookmark_id):
-        if self.server.delete_bookmark(bookmark_id):
-            status_section = StatusSection(True, DELETE_BOOKMARK_OK_MSG)
+    def delete_cheatsheet(self, cheatsheet_id):
+        if self.server.delete_cheatsheet(cheatsheet_id):
+            status_section = StatusSection(True, DELETE_CHEATSHEET_OK_MSG)
         else:
-            logger.error("failed to delete bookmark %s", bookmark_id)
-            status_section = StatusSection(False, DELETE_BOOKMARK_ERR_MSG)
+            logger.error("failed to delete cheatsheet %s", cheatsheet_id)
+            status_section = StatusSection(False, DELETE_CHEATSHEET_ERR_MSG)
 
-        return status_section, self.display_bookmarks(None, None)
+        return status_section, self.display_cheatsheets(None, None)

@@ -2,9 +2,7 @@
 
 A productivity tool to manage and search snippets.
 
-**NOTE:** This project is forked from [Bookmarker](https://github.com/eranfrie/Bookmarker)
-and was quickly modified to make it work.
-Therefore it contains inaccuracies (variable namings, comments).
+This project is based on [Bookmarker](https://github.com/eranfrie/Bookmarker) code base.
 
 
 ## Installation

@@ -1,6 +1,6 @@
 import logging
 
-from server.bookmark import Bookmark
+from server.cheatsheet import Cheatsheet
 from server.server_api import InternalException, SnippetRequiredException
 
 
@@ -16,10 +16,10 @@ class Server:
         logger.debug("invalidating cache")
         self._cache = None
 
-    def _get_all_bookmarks(self):
+    def _get_all_cheatsheets(self):
         """
         Returns:
-            list of Bookmark objects
+            list of Cheatsheet objects
         """
         # don't use cache if cache is None -
         #     it means either cache was invalidated or an error occurred in previous call
@@ -29,38 +29,38 @@ class Server:
         if self._cache:
             return self._cache
 
-        bookmarks = []
+        cheatsheets = []
 
         try:
-            bookmarks_json = self.db.read_all_bookmarks()
+            cheatsheets_json = self.db.read_all_cheatsheets()
         except Exception as e:
-            logger.exception("failed to read bookmarks from db")
+            logger.exception("failed to read cheatsheets from db")
             raise InternalException() from e
 
-        for j in bookmarks_json:
+        for j in cheatsheets_json:
             section = j["section"] if j["section"] else ""
             section = section.lower()  # ignore case
-            bookmarks.append(
-                Bookmark(
+            cheatsheets.append(
+                Cheatsheet(
                     j["id"],
                     j["snippet"],
                     section,
                 )
             )
 
-        bookmarks.sort()
-        self._cache = bookmarks
+        cheatsheets.sort()
+        self._cache = cheatsheets
         return self._cache
 
-    def get_bookmarks(self, pattern, is_fuzzy):
-        bookmarks = self._get_all_bookmarks()
+    def get_cheatsheets(self, pattern, is_fuzzy):
+        cheatsheets = self._get_all_cheatsheets()
         if not pattern:
-            return bookmarks
+            return cheatsheets
 
         pattern = pattern.lower()
-        return [b for b in bookmarks if b.match(pattern, is_fuzzy)]
+        return [b for b in cheatsheets if b.match(pattern, is_fuzzy)]
 
-    def add_bookmark(self, snippet, section):
+    def add_cheatsheet(self, snippet, section):
         self._invalidate_cache()
 
         # strip input
@@ -69,17 +69,17 @@ class Server:
 
         # input validation
         if not snippet:
-            logger.debug("add bookmark failed - snippet is required")
+            logger.debug("add cheatsheet failed - snippet is required")
             raise SnippetRequiredException()
 
         try:
-            self.db.add_bookmark(snippet, section)
-            logger.info("bookmark added successfully")
+            self.db.add_cheatsheet(snippet, section)
+            logger.info("cheatsheet added successfully")
         except Exception as e:
-            logger.exception("failed to add bookmark to db: snippet=%s, section=%s", snippet, section)
+            logger.exception("failed to add cheatsheet to db: snippet=%s, section=%s", snippet, section)
             raise InternalException() from e
 
-    def delete_bookmark(self, bookmark_id):
+    def delete_cheatsheet(self, cheatsheet_id):
         """
         Returns:
             bool: whether delete succeeded or not
@@ -87,10 +87,10 @@ class Server:
         self._invalidate_cache()
 
         try:
-            logger.info("requested to delete bookmark_id %s", bookmark_id)
-            bookmark_id = int(bookmark_id)
-            return self.db.delete_bookmark(bookmark_id)
+            logger.info("requested to delete cheatsheet_id %s", cheatsheet_id)
+            cheatsheet_id = int(cheatsheet_id)
+            return self.db.delete_cheatsheet(cheatsheet_id)
         # pylint: disable=W0703 (broad-except)
         except Exception:
-            logger.exception("failed to delete bookmark_id %s", bookmark_id)
+            logger.exception("failed to delete cheatsheet_id %s", cheatsheet_id)
             return False

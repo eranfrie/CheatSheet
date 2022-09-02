@@ -23,10 +23,10 @@ def _regular_search(pattern, text):
 
 
 # pylint: disable=R0902 (too-many-instance-attributes)
-class Bookmark:
+class Cheatsheet:
     # pylint: disable=R0913 (too-many-arguments)
-    def __init__(self, bookmark_id, snippet, section):
-        self.id = bookmark_id
+    def __init__(self, cheatsheet_id, snippet, section):
+        self.id = cheatsheet_id
         self.snippet = snippet if snippet else ""
         self.section = section.lower() if section else ""  # section always lower case
 
