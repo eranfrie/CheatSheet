@@ -1,8 +1,19 @@
 # CheatSheet
 
-A productivity tool to manage and search snippets.
+A productivity self-hosted tool to manage and browse cheatsheet and snippets
+(in a [Markdown](https://en.wikipedia.org/wiki/Markdown) format).
 
 This project is based on [Bookmarker](https://github.com/eranfrie/Bookmarker) code base.
+
+<kbd>
+  <img src="images/cheatsheet.png" width="100%" />
+</kbd>
+
+#### Privacy
+
+Snippets are stored locally in a [SQLite](https://www.sqlite.org/index.html) database.
+This is useful when you don't want to expose sensitive data (e.g., in your workplace) with third-party tools.
+Note that it is recommended to periodically back up the SQLite file.
 
 
 ## Installation
@@ -29,18 +40,21 @@ pip install -r requirements.txt
 
 ## Tests
 
-Running the `build.py` script performs several static code analysis and test suites:
+This project is well tested with unittests and end-to-end tests.
+The code coverage is 98%.
+
+The `build.py` script runs the following static code analysis and test suites:
 - pycodestyle (pep8)
 - pylint
 - Unit tests
 - End-to-end tests
 
-To run:
+To run `build.py`:
 1. Activate the virtual environment: `source venv/bin/activate`
 2. Install dev dependencies: `pip install -r requirements_dev.txt`
 3. Run: `PYTHONPATH=src python build.py`
 
-To check coverage, run:
+To check coverage:
 1. `PYTHONPATH=src coverage run --concurrency=multiprocessing build.py`
 2. `coverage combine`
 3. `coverage html`
