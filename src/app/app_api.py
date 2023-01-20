@@ -6,7 +6,7 @@ from markdown import markdown
 
 from utils import opts, version
 from utils.html_utils import highlight
-from app.app_sections import AddCheatsheetSection
+from app.app_sections import CheatsheetSection
 
 
 INC_URL_DEFAULT = "false"
@@ -19,6 +19,8 @@ class Route (Enum):
     INDEX = "/"
     CHEATSHEETS = "/snippets"
     ADD_CHEATSHEET = "/add_snippet"
+    EDIT_FORM = "/edit"  # edit form (GET)
+    EDIT_SNIPPET = "/edit_snippet"  # edit and display all (POST)
     DELETE_CHEATSHEET = "/delete_snippet"
     ABOUT = "/about"
 
@@ -26,6 +28,11 @@ class Route (Enum):
 class Page (Enum):
     HOME = "Home"
     ABOUT = "About"
+
+
+class CheatsheetFormType (Enum):
+    ADD = "Add"
+    EDIT = "Edit"
 
 
 page_to_route = {
@@ -44,23 +51,26 @@ class AppAPI:
         def _status_to_color(status):
             return "green" if status.success else "red"
 
-        def _add_cheatsheet_form(add_cheatsheet_section, sections):
-            if not add_cheatsheet_section:
-                add_cheatsheet_section = AddCheatsheetSection("", "")
+        def _cheatsheet_form(cheatsheet_form_type, cheatsheet_section, sections):
+            """A form to add/edit a cheatsheet."""
+            if not cheatsheet_section:
+                cheatsheet_section = CheatsheetSection("", "", None)
 
-            html = '<h4>Add a new snippet</h4>'
-            html += f'<form action="/add_snippet" method="post">' \
-                    f'<input type="text" name="section" list="sections" placeholder="Section" ' \
-                    f'size="80" value="{add_cheatsheet_section.last_section}"><br>' \
+            html = f'<h4>{cheatsheet_form_type.value} a snippet</h4>'
+            html += f'<form action="/{cheatsheet_form_type.value.lower()}_snippet" method="post">'
+            if cheatsheet_section.snippet_id is not None:
+                html += '<input type="hidden" id="snippet_id" name="snippet_id" ' \
+                        f'value="{cheatsheet_section.snippet_id}" />'
+            html += f'<input type="text" name="section" list="sections" placeholder="Section" ' \
+                    f'size="80" value="{cheatsheet_section.last_section}"><br>' \
                     f'<datalist id="sections">'
             for s in sections:
                 html += f'<option>{s}</option>'
             html += '</datalist>' \
-                    '<textarea name="snippet" rows="15" cols="80" placeholder="Snippet"' \
-                    f'value="{add_cheatsheet_section.last_snippet}"></textarea><br>' \
+                    '<textarea name="snippet" rows="15" cols="80" placeholder="Snippet">' \
+                    f'{cheatsheet_section.last_snippet}</textarea><br>' \
                     '<input onclick="this.form.submit();this.disabled = true;" type="submit">' \
-                    '</form>' \
-                    "<hr>"
+                    '</form>'
             return html
 
         def _search_section():
@@ -175,6 +185,9 @@ class AppAPI:
 
                     cheatsheets_section += "<hr>"
                     cheatsheets_section += f"<b>{md_snippet}</b><br>"
+                    cheatsheets_section += '<button class="btn" ' \
+                        f'onclick="window.location.href=\'{Route.EDIT_FORM.value}?id={b.id}\'">' \
+                        '<i class="fa fa-edit"></i></button>'
                     cheatsheets_section += f'<button class="btn" onclick="deleteCheatsheet({b.id})">' \
                         '<i class="fa fa-trash"></i></button>'
             else:
@@ -205,7 +218,8 @@ class AppAPI:
             return _header() + \
                 _menu(Page.HOME) + \
                 _status_section(status_section) + \
-                _add_cheatsheet_form(add_cheatsheet_section, sections) + \
+                _cheatsheet_form(CheatsheetFormType.ADD, add_cheatsheet_section, sections) + \
+                "<hr>" + \
                 _search_section() + \
                 _cheatsheets_section(display_cheatsheets_section)
 
@@ -228,9 +242,38 @@ class AppAPI:
             snippet = request.form.get("snippet")
             section = request.form.get("section")
 
-            status_section, display_cheatsheets_section, add_cheatsheet_section = \
+            status_section, display_cheatsheets_section, cheatsheet_section = \
                 self.app.add_cheatsheet(snippet, section)
-            return _main_page(status_section, display_cheatsheets_section, add_cheatsheet_section)
+            return _main_page(status_section, display_cheatsheets_section, cheatsheet_section)
+
+        def _display_edit_form(snippet, section, snippet_id, status_section):
+            cheatsheet_section = CheatsheetSection(snippet, section, snippet_id)
+            sections = {}
+            return _header() + \
+                _menu(None) + \
+                _status_section(status_section) + \
+                _cheatsheet_form(CheatsheetFormType.EDIT, cheatsheet_section, sections)
+
+        @self.app_api.route(Route.EDIT_FORM.value)
+        def edit_form():
+            cheatsheet_id = request.args.get("id")
+            cheatsheet = self.app.edit_cheatsheet_form(cheatsheet_id)
+            if not cheatsheet:
+                return _main_page(None, self.app.display_cheatsheets(None, False), None)
+
+            return _display_edit_form(cheatsheet.snippet, cheatsheet.section, cheatsheet_id, None)
+
+        @self.app_api.route(Route.EDIT_SNIPPET.value, methods=["POST"])
+        def edit_cheatsheet():
+            snippet_id = request.form.get("snippet_id")
+            snippet = request.form.get("snippet")
+            section = request.form.get("section")
+            status_section, display_cheatsheets_section, cheatsheet_section = \
+                self.app.edit_cheatsheet(snippet_id, snippet, section)
+
+            if not status_section.success:
+                return _display_edit_form(snippet, section, snippet_id, status_section)
+            return _main_page(status_section, display_cheatsheets_section, cheatsheet_section)
 
         @self.app_api.route(Route.DELETE_CHEATSHEET.value, methods=["POST"])
         def delete_cheatsheet():

@@ -38,15 +38,7 @@ class Server:
             raise InternalException() from e
 
         for j in cheatsheets_json:
-            section = j["section"] if j["section"] else ""
-            section = section.lower()  # ignore case
-            cheatsheets.append(
-                Cheatsheet(
-                    j["id"],
-                    j["snippet"],
-                    section,
-                )
-            )
+            cheatsheets.append(Cheatsheet.from_json(j))
 
         cheatsheets.sort()
         self._cache = cheatsheets
@@ -77,6 +69,40 @@ class Server:
             logger.info("cheatsheet added successfully")
         except Exception as e:
             logger.exception("failed to add cheatsheet to db: snippet=%s, section=%s", snippet, section)
+            raise InternalException() from e
+
+    def get_cheatsheet(self, cheatsheet_id):
+        """
+        Returns:
+            str if cheatsheet exists or None
+        """
+        try:
+            cheatsheet_id = int(cheatsheet_id)
+            j = self.db.read_cheatsheet(cheatsheet_id)
+            return Cheatsheet.from_json(j)
+        # pylint: disable=W0703 (broad-except)
+        except Exception:
+            logger.exception("failed to get cheatsheet_id %s", cheatsheet_id)
+            return None
+
+    def edit_cheatsheet(self, snippet_id, snippet, section):
+        self._invalidate_cache()
+
+        # strip input
+        snippet = "" if snippet is None else snippet.strip()
+        section = "" if section is None else section.strip()
+
+        # input validation
+        if not snippet:
+            logger.debug("edit cheatsheet failed - snippet is required")
+            raise SnippetRequiredException()
+
+        try:
+            self.db.edit_cheatsheet(snippet_id, snippet, section)
+            logger.info("cheatsheet edited successfully")
+        except Exception as e:
+            logger.exception("failed to update cheatsheet in db: snippet_id=%s, snippet=%s, section=%s",
+                             snippet_id, snippet, section)
             raise InternalException() from e
 
     def delete_cheatsheet(self, cheatsheet_id):

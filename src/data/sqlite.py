@@ -13,6 +13,14 @@ def sql_escape(text):
     return text.replace("'", "''")
 
 
+def record_to_json(record):
+    return {
+        "id": record[0],
+        "section": record[1],
+        "snippet": record[2],
+    }
+
+
 class Sqlite:
     def __init__(self, db_filename):
         self.db_filename = db_filename
@@ -55,15 +63,28 @@ class Sqlite:
             raise e
 
         for record in records:
-            cheatsheets.append(
-                {
-                    "id": record[0],
-                    "section": record[1],
-                    "snippet": record[2],
-                }
-            )
+            cheatsheets.append(record_to_json(record))
         Sqlite._close(conn)
         return cheatsheets
+
+    def read_cheatsheet(self, cheatsheet_id):
+        """
+        Returns:
+            dict: a record from the db
+        """
+        conn, cursor = self._connect()
+
+        try:
+            records = cursor.execute(f"SELECT * FROM {CHEATSHEETS_TABLE} where id={cheatsheet_id};")
+        except Exception as e:
+            Sqlite._close(conn)
+            raise e
+
+        cheatsheet = None
+        for record in records:  # only one record will be found
+            cheatsheet = record_to_json(record)
+        Sqlite._close(conn)
+        return cheatsheet
 
     def add_cheatsheet(self, snippet, section):
         conn, cursor = self._connect()
@@ -71,6 +92,16 @@ class Sqlite:
             cursor.execute(f"INSERT INTO {CHEATSHEETS_TABLE} (section, snippet) "
                            f"VALUES ('{sql_escape(section)}', "
                            f"'{sql_escape(snippet)}');")
+        finally:
+            Sqlite._close(conn)
+
+    def edit_cheatsheet(self, snippet_id, snippet, section):
+        conn, cursor = self._connect()
+        try:
+            cursor.execute(f"UPDATE {CHEATSHEETS_TABLE} "
+                           f"SET section='{sql_escape(section)}', "
+                           f"snippet='{sql_escape(snippet)}' "
+                           f"WHERE id={snippet_id};")
         finally:
             Sqlite._close(conn)
 

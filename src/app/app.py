@@ -2,13 +2,15 @@ import logging
 
 from utils.html_utils import html_escape
 from server.server_api import InternalException, SnippetRequiredException
-from app.app_sections import DisplayCheatsheetsSection, AddCheatsheetSection, StatusSection
+from app.app_sections import DisplayCheatsheetsSection, CheatsheetSection, StatusSection
 
 
 GET_CHEATSHEETS_ERR_MSG = "Internal error. Please try again later"
 ADD_CHEATSHEET_ERR_MSG = "Internal error: Failed to add a new snippet. Please try again later"
 ADD_CHEATSHEET_OK_MSG = "Snippet added successfully"
-ADD_CHEATSHEET_SNIPPET_REQUIRED_MSG = "Error: Snippet is a required field"
+SNIPPET_REQUIRED_MSG = "Error: Snippet is a required field"
+EDIT_CHEATSHEET_ERR_MSG = "Internal error: Failed to edit a snippet. Please try again later"
+EDIT_CHEATSHEET_OK_MSG = "Snippet edited successfully"
 
 DELETE_CHEATSHEET_OK_MSG = "Snippet deleted successfully"
 DELETE_CHEATSHEET_ERR_MSG = "Failed to delete snippet"
@@ -51,22 +53,50 @@ class App:
 
         try:
             self.server.add_cheatsheet(snippet, section)
-            add_cheatsheet_section = AddCheatsheetSection("", "")
+            cheatsheet_section = CheatsheetSection("", "", None)
             status_section = StatusSection(True, ADD_CHEATSHEET_OK_MSG)
         except InternalException:
-            add_cheatsheet_section = AddCheatsheetSection(snippet, section)
+            cheatsheet_section = CheatsheetSection(snippet, section, None)
             status_section = StatusSection(False, ADD_CHEATSHEET_ERR_MSG)
         except SnippetRequiredException:
-            add_cheatsheet_section = AddCheatsheetSection(snippet, section)
-            status_section = StatusSection(False, ADD_CHEATSHEET_SNIPPET_REQUIRED_MSG)
+            cheatsheet_section = CheatsheetSection(snippet, section, None)
+            status_section = StatusSection(False, SNIPPET_REQUIRED_MSG)
 
-        # escape add_cheatsheet_section
-        escaped_add_cheatsheets_section = AddCheatsheetSection(
-            html_escape(add_cheatsheet_section.last_snippet),
-            html_escape(add_cheatsheet_section.last_section)
+        # escape cheatsheet_section
+        escaped_cheatsheets_section = CheatsheetSection(
+            html_escape(cheatsheet_section.last_snippet),
+            html_escape(cheatsheet_section.last_section),
+            None
         )
 
-        return status_section, self.display_cheatsheets(None, None), escaped_add_cheatsheets_section
+        return status_section, self.display_cheatsheets(None, None), escaped_cheatsheets_section
+
+    def edit_cheatsheet_form(self, cheatsheet_id):
+        return self.server.get_cheatsheet(cheatsheet_id)
+
+    def edit_cheatsheet(self, snippet_id, snippet, section):
+        logger.info("got request to edit cheatsheet: snippet_id=%s, snippet=%s, section=%s",
+                    snippet_id, snippet, section)
+
+        try:
+            self.server.edit_cheatsheet(snippet_id, snippet, section)
+            cheatsheet_section = CheatsheetSection("", "", None)
+            status_section = StatusSection(True, EDIT_CHEATSHEET_OK_MSG)
+        except InternalException:
+            cheatsheet_section = CheatsheetSection(snippet, section, None)
+            status_section = StatusSection(False, EDIT_CHEATSHEET_ERR_MSG)
+        except SnippetRequiredException:
+            cheatsheet_section = CheatsheetSection(snippet, section, None)
+            status_section = StatusSection(False, SNIPPET_REQUIRED_MSG)
+
+        # escape cheatsheet_section
+        escaped_cheatsheets_section = CheatsheetSection(
+            html_escape(cheatsheet_section.last_snippet),
+            html_escape(cheatsheet_section.last_section),
+            None
+        )
+
+        return status_section, self.display_cheatsheets(None, None), escaped_cheatsheets_section
 
     def delete_cheatsheet(self, cheatsheet_id):
         if self.server.delete_cheatsheet(cheatsheet_id):

@@ -24,6 +24,16 @@ def _regular_search(pattern, text):
 
 # pylint: disable=R0902 (too-many-instance-attributes)
 class Cheatsheet:
+    @classmethod
+    def from_json(cls, j):
+        section = j["section"] if j["section"] else ""
+        section = section.lower()  # ignore case
+        return Cheatsheet(
+            j["id"],
+            j["snippet"],
+            section,
+        )
+
     # pylint: disable=R0913 (too-many-arguments)
     def __init__(self, cheatsheet_id, snippet, section):
         self.id = cheatsheet_id

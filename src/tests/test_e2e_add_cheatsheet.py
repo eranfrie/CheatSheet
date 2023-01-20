@@ -64,27 +64,27 @@ class TestE2eAddCheatsheet(TestE2eBase):
     def test_add_cheatsheet_snippet_required(self):
         response = self._add_cheatsheet("", "test_section")
         self._compare_num_cheatsheets(response, 0)
-        assert response.text.count(app.ADD_CHEATSHEET_SNIPPET_REQUIRED_MSG) == 1
+        assert response.text.count(app.SNIPPET_REQUIRED_MSG) == 1
 
     def test_add_cheatsheet_no_fields(self):
         response = self._add_cheatsheet("", "")
         self._compare_num_cheatsheets(response, 0)
-        assert response.text.count(app.ADD_CHEATSHEET_SNIPPET_REQUIRED_MSG) == 1
+        assert response.text.count(app.SNIPPET_REQUIRED_MSG) == 1
 
     def test_add_cheatsheet_snippet_whitespace(self):
         response = self._add_cheatsheet(" ", "")
         self._compare_num_cheatsheets(response, 0)
-        assert response.text.count(app.ADD_CHEATSHEET_SNIPPET_REQUIRED_MSG) == 1
+        assert response.text.count(app.SNIPPET_REQUIRED_MSG) == 1
 
     def test_add_cheatsheet_snippet_tab(self):
         response = self._add_cheatsheet("\t", "")
         self._compare_num_cheatsheets(response, 0)
-        assert response.text.count(app.ADD_CHEATSHEET_SNIPPET_REQUIRED_MSG) == 1
+        assert response.text.count(app.SNIPPET_REQUIRED_MSG) == 1
 
     def test_add_cheatsheet_snippet_newline(self):
         response = self._add_cheatsheet("\n", "")
         self._compare_num_cheatsheets(response, 0)
-        assert response.text.count(app.ADD_CHEATSHEET_SNIPPET_REQUIRED_MSG) == 1
+        assert response.text.count(app.SNIPPET_REQUIRED_MSG) == 1
 
     def test_sql_escaping(self):
         # test single quote
@@ -106,13 +106,13 @@ class TestE2eAddCheatsheet(TestE2eBase):
 
     def test_input_values_on_err(self):
         """
-        If "add cheatsheet" operation fail,
+        If "add cheatsheet" operation fails,
         fields that were entered by user should still show up.
         """
         # error due to missing snippet
         response = self._add_cheatsheet("", "test_section")
         self._compare_num_cheatsheets(response, 0)
-        assert response.text.count(app.ADD_CHEATSHEET_SNIPPET_REQUIRED_MSG) == 1
+        assert response.text.count(app.SNIPPET_REQUIRED_MSG) == 1
         assert 'value="test_section"' in response.text
 
         # internal error
@@ -121,7 +121,7 @@ class TestE2eAddCheatsheet(TestE2eBase):
         self._compare_num_cheatsheets(response, 0, db_avail=False)
         assert response.text.count(app.ADD_CHEATSHEET_ERR_MSG) == 1
         assert response.text.count(app.GET_CHEATSHEETS_ERR_MSG) == 1
-        assert 'value="test_snippet"' in response.text \
+        assert 'test_snippet' in response.text \
             and 'value="test_section"' in response.text
 
     def test_escaped_input_values_on_err(self):
@@ -136,7 +136,7 @@ class TestE2eAddCheatsheet(TestE2eBase):
         self._compare_num_cheatsheets(response, 0, db_avail=False)
         assert response.text.count(app.ADD_CHEATSHEET_ERR_MSG) == 1
         assert response.text.count(app.GET_CHEATSHEETS_ERR_MSG) == 1
-        assert 'value="&lt;test_snippet&gt;"' in response.text \
+        assert '&lt;test_snippet&gt;' in response.text \
             and 'value="&lt;test_section&gt;"' in response.text
 
     def test_no_input_values_on_success(self):

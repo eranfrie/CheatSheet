@@ -13,22 +13,19 @@ class DisplayCheatsheetsSection:
         self.display_cheatsheets_err = display_cheatsheets_err
 
 
-class AddCheatsheetSection:
+class CheatsheetSection:
     """
     Args:
-        last_op_succeeded (bool | None):
-            True/False if adding a cheatsheet is being requested and succeeded/failed accordingly.
-            None if adding a cheatsheet is not being requested.
-        last_op_msg (str | None):
-            if last_op_succeeded is True/False, a message to display.
         last_snippet (str | ""): snippet to be displayed in the "add cheatsheet" input field.
             empty string ("") to display the placeholder.
         last_section (str | ""): section to be displayed in the "add cheatsheet" input field.
             empty string ("") to display the placeholder.
+        snippet_id: relevant if it's an edit form, otherwise None
     """
-    def __init__(self, last_snippet, last_section):
+    def __init__(self, last_snippet, last_section, snippet_id):
         self.last_snippet = last_snippet
         self.last_section = last_section
+        self.snippet_id = snippet_id
 
 
 class StatusSection:
