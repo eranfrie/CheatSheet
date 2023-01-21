@@ -1,5 +1,6 @@
 import logging
 from enum import Enum
+from urllib.parse import unquote_plus
 
 from flask import Flask, request
 from markdown import markdown
@@ -22,6 +23,7 @@ class Route (Enum):
     EDIT_FORM = "/edit"  # edit form (GET)
     EDIT_SNIPPET = "/edit_snippet"  # edit and display all (POST)
     DELETE_CHEATSHEET = "/delete_snippet"
+    PREVIEW = "/preview"
     ABOUT = "/about"
 
 
@@ -42,6 +44,16 @@ page_to_route = {
 assert len(Page) == len(page_to_route)
 
 
+def to_markdown(snippet):
+    # not using escaping and highlight
+    # because markdown() does escaping
+    md_snippet = markdown(snippet, extensions=["extra"])
+    md_snippet = md_snippet.replace(
+        "<pre>",
+        '<pre style="background-color:LightGray; max-width:80%; white-space: pre-wrap;">')
+    return md_snippet
+
+
 class AppAPI:
     # pylint: disable=R0915, R0914 (too-many-statements, too-many-locals)
     def __init__(self, app):
@@ -56,7 +68,23 @@ class AppAPI:
             if not cheatsheet_section:
                 cheatsheet_section = CheatsheetSection("", "", None)
 
-            html = f'<h4>{cheatsheet_form_type.value} a snippet</h4>'
+            html = """
+                <script type="text/javascript">
+                  function preview()
+                  {
+                    snippet = document.getElementById("snippettextarea").value;
+
+                    const xhttp = new XMLHttpRequest();
+                    xhttp.onload = function() {
+                      document.getElementById("preview_div").innerHTML = this.responseText;
+                    }
+                    xhttp.open("GET", "/preview?snippet=" + encodeURIComponent(snippet));
+                    xhttp.send();
+                  }
+                </script>
+            """
+
+            html += f'<h3>{cheatsheet_form_type.value} a snippet</h3>'
             html += f'<form action="/{cheatsheet_form_type.value.lower()}_snippet" method="post">'
             if cheatsheet_section.snippet_id is not None:
                 html += '<input type="hidden" id="snippet_id" name="snippet_id" ' \
@@ -67,8 +95,11 @@ class AppAPI:
             for s in sections:
                 html += f'<option>{s}</option>'
             html += '</datalist>' \
-                    '<textarea name="snippet" rows="15" cols="80" placeholder="Snippet">' \
-                    f'{cheatsheet_section.last_snippet}</textarea><br>' \
+                    '<textarea id="snippettextarea" name="snippet" rows="15" cols="80" ' \
+                    f'placeholder="Snippet"  oninput=preview()>{cheatsheet_section.last_snippet}' \
+                    '</textarea><br>' \
+                    '<h3>Preview:</h3>' \
+                    '<div id="preview_div"></div><br>' \
                     '<input onclick="this.form.submit();this.disabled = true;" type="submit">' \
                     '</form>'
             return html
@@ -170,12 +201,7 @@ class AppAPI:
 
                 prev_section = None
                 for b in display_cheatsheets_section.cheatsheets:
-                    # not using escaping and highlight
-                    # because markdown() does escaping
-                    md_snippet = markdown(b.snippet, extensions=["extra"])
-                    md_snippet = md_snippet.replace(
-                        "<pre>",
-                        '<pre style="background-color:LightGray; max-width:80%; white-space: pre-wrap;">')
+                    md_snippet = to_markdown(b.snippet)
                     section = highlight(b.escaped_chars_section, b.section_indexes)
 
                     if b.section and b.section != prev_section:
@@ -245,6 +271,13 @@ class AppAPI:
             status_section, display_cheatsheets_section, cheatsheet_section = \
                 self.app.add_cheatsheet(snippet, section)
             return _main_page(status_section, display_cheatsheets_section, cheatsheet_section)
+
+        @self.app_api.route(Route.PREVIEW.value)
+        def preview():
+            snippet = request.args.get("snippet", "")
+            snippet = unquote_plus(snippet)
+            md_snippet = to_markdown(snippet)
+            return f"<b>{md_snippet}</b><br>"
 
         def _display_edit_form(snippet, section, snippet_id, status_section):
             cheatsheet_section = CheatsheetSection(snippet, section, snippet_id)
