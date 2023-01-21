@@ -21,6 +21,7 @@ class URL (Enum):
     INDEX = TEST_URL + Route.INDEX.value
     CHEATSHEETS = TEST_URL + Route.CHEATSHEETS.value
     ADD_CHEATSHEET = TEST_URL + Route.ADD_CHEATSHEET.value
+    PREVIEW = TEST_URL + Route.PREVIEW.value
     DELETE_CHEATSHEET = TEST_URL + Route.DELETE_CHEATSHEET.value
     ABOUT = TEST_URL + Route.ABOUT.value
 
