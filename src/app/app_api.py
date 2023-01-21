@@ -133,7 +133,7 @@ class AppAPI:
                   searchCheatsheet.addEventListener("input", searchEvent);
 
                   window.onkeydown = function(e) {
-                    if (e.keyCode == 65 && e.ctrlKey) {
+                    if (e.keyCode == 66 && e.ctrlKey) {
                       document.getElementById("searchCheatsheet").focus();
                       document.getElementById("searchCheatsheet").select();
                     }
