@@ -51,6 +51,9 @@ def to_markdown(snippet):
     md_snippet = md_snippet.replace(
         "<pre>",
         '<pre style="background-color:LightGray; max-width:80%; white-space: pre-wrap;">')
+    md_snippet = md_snippet.replace(
+        "<code>",
+        '<code style="background-color:LightGray;">')
     return md_snippet
 
 
@@ -210,7 +213,7 @@ class AppAPI:
                         cheatsheets_section += f"<br><u><b><h1>{section}</h1></b></u>"
 
                     cheatsheets_section += "<hr>"
-                    cheatsheets_section += f"<b>{md_snippet}</b><br>"
+                    cheatsheets_section += f"{md_snippet}<br>"
                     cheatsheets_section += '<button class="btn" ' \
                         f'onclick="window.location.href=\'{Route.EDIT_FORM.value}?id={b.id}\'">' \
                         '<i class="fa fa-edit"></i></button>'
@@ -277,7 +280,7 @@ class AppAPI:
             snippet = request.args.get("snippet", "")
             snippet = unquote_plus(snippet)
             md_snippet = to_markdown(snippet)
-            return f"<b>{md_snippet}</b><br>"
+            return f"{md_snippet}<br>"
 
         def _display_edit_form(snippet, section, snippet_id, status_section):
             cheatsheet_section = CheatsheetSection(snippet, section, snippet_id)
