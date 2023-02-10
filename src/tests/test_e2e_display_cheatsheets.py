@@ -38,6 +38,7 @@ class TestE2eDisplayCheatsheets(TestE2eBase):
         self._compare_num_cheatsheets(response, 1)
         assert "background-color:LightGray;" in response.text
 
+    # pylint: disable=R0201 (no-self-use)
     def test_preview_section_exists(self):
         response = requests.get(URL.INDEX.value)
         assert "Preview" in response.text
