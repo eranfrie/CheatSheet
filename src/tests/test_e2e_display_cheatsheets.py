@@ -37,3 +37,7 @@ class TestE2eDisplayCheatsheets(TestE2eBase):
         response = requests.get(URL.INDEX.value)
         self._compare_num_cheatsheets(response, 1)
         assert "background-color:LightGray;" in response.text
+
+    def test_preview_section_exists(self):
+        response = requests.get(URL.INDEX.value)
+        assert "Preview" in response.text
