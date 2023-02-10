@@ -23,6 +23,7 @@ class URL (Enum):
     ADD_CHEATSHEET = TEST_URL + Route.ADD_CHEATSHEET.value
     PREVIEW = TEST_URL + Route.PREVIEW.value
     EDIT_FORM = TEST_URL + Route.EDIT_FORM.value
+    EDIT_SNIPPET = TEST_URL + Route.EDIT_SNIPPET.value
     DELETE_CHEATSHEET = TEST_URL + Route.DELETE_CHEATSHEET.value
     ABOUT = TEST_URL + Route.ABOUT.value
 

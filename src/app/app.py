@@ -85,9 +85,11 @@ class App:
         except InternalException:
             cheatsheet_section = CheatsheetSection(snippet, section, None)
             status_section = StatusSection(False, EDIT_CHEATSHEET_ERR_MSG)
+            return status_section, None, None
         except SnippetRequiredException:
             cheatsheet_section = CheatsheetSection(snippet, section, None)
             status_section = StatusSection(False, SNIPPET_REQUIRED_MSG)
+            return status_section, None, None
 
         # escape cheatsheet_section
         escaped_cheatsheets_section = CheatsheetSection(
