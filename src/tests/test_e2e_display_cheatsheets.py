@@ -30,3 +30,10 @@ class TestE2eDisplayCheatsheets(TestE2eBase):
         response = requests.get(URL.INDEX.value)
         self._compare_num_cheatsheets(response, 0, db_avail=False)
         assert response.text.count(app.GET_CHEATSHEETS_ERR_MSG) == 1
+
+    def test_markdown_inline_code(self):
+        """Test that an inline code is properly highlighted."""
+        self._add_cheatsheet_to_db("test_`snippet`_1", "test_section_1")
+        response = requests.get(URL.INDEX.value)
+        self._compare_num_cheatsheets(response, 1)
+        assert "background-color:LightGray;" in response.text
