@@ -17,9 +17,11 @@ def _regular_search(pattern, text):
     for line in text.splitlines():
         try:
             first_indes = line.index(pattern)
+            return set(range(first_indes, first_indes + len(pattern)))
         except ValueError:
-            return None
-        return set(range(first_indes, first_indes + len(pattern)))
+            continue
+
+    return None
 
 
 # pylint: disable=R0902 (too-many-instance-attributes)
