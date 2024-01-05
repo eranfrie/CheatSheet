@@ -58,9 +58,6 @@ class Cheatsheet:
         self.escaped_chars_section = split_escaped_text(self.escaped_section)
         assert len(self.escaped_chars_section) == len(self.section)
 
-        self.snippet_indexes = None
-        self.section_indexes = None
-
     def __lt__(self, other):
         if self.section_lower != other.section_lower:
             return self.section_lower < other.section_lower
@@ -73,6 +70,4 @@ class Cheatsheet:
             pattern is lower case
         """
         search_method = is_match if is_fuzzy else _regular_search
-        self.snippet_indexes = search_method(pattern, self.snippet_lower)
-        self.section_indexes = search_method(pattern, self.section_lower)
-        return self.snippet_indexes is not None
+        return search_method(pattern, self.snippet_lower) is not None

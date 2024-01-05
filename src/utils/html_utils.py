@@ -22,18 +22,3 @@ def split_escaped_text(line):
                 escaped_opened = True
 
     return res
-
-
-def highlight(line_list, indexes):
-    if not line_list:
-        return ""
-    if not indexes:
-        return "".join(line_list)
-
-    highlighted_line = ""
-    for i, c in enumerate(line_list):
-        if i in indexes:
-            highlighted_line += f"<mark>{c}</mark>"
-        else:
-            highlighted_line += c
-    return "".join(highlighted_line)

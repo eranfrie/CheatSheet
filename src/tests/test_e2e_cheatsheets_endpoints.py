@@ -1,3 +1,5 @@
+import base64
+
 import requests
 
 from app import app
@@ -46,7 +48,8 @@ class TestE2eCheatsheetsEndpoint(TestE2eBase):
         self._compare_num_cheatsheets(response, 2)
 
         pattern = "test_snippet_3"
-        response = requests.get(URL.CHEATSHEETS.value, params={"pattern": pattern})
+        encoded_pattern = base64.b64encode(pattern.encode("ascii"))
+        response = requests.get(URL.CHEATSHEETS.value, params={"pattern": encoded_pattern})
         self._compare_num_cheatsheets(response, 0, db_avail=False)
         assert response.text.count("mark>") == 0
 
@@ -57,5 +60,6 @@ class TestE2eCheatsheetsEndpoint(TestE2eBase):
         self._compare_num_cheatsheets(response, 2)
 
         pattern = "test_snippet_1"
-        response = requests.get(URL.CHEATSHEETS.value, params={"pattern": pattern})
+        encoded_pattern = base64.b64encode(pattern.encode("ascii"))
+        response = requests.get(URL.CHEATSHEETS.value, params={"pattern": encoded_pattern})
         self._compare_num_cheatsheets(response, 1, db_avail=False)

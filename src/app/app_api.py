@@ -1,3 +1,4 @@
+import base64
 import logging
 from enum import Enum
 from urllib.parse import unquote_plus
@@ -6,7 +7,6 @@ from flask import Flask, request
 from markdown import markdown
 
 from utils import opts, version
-from utils.html_utils import highlight
 from app.app_sections import CheatsheetSection
 
 
@@ -110,24 +110,26 @@ class AppAPI:
         def _search_section():
             return """
                 <br>
-                Search: <input type="search" id="searchCheatsheet" placeholder="pattern"><br>
+                Search:
+                <br>
+                <textarea id="searchCheatsheet" name="searchCheatsheet" rows="3" cols="30"></textarea><br>
+                <br>
 
                 <input type="checkbox" id="fuzzy" checked>
                 <label for="fuzzy"> Fuzzy search</label><br>
-
                 <br>
 
                 <script type="text/javascript">
                   function searchEvent()
                   {
-                    pattern = document.getElementById("searchCheatsheet").value;
+                    patterns = document.getElementById("searchCheatsheet").value;
                     fuzzy = document.getElementById("fuzzy").checked;
 
                     const xhttp = new XMLHttpRequest();
                     xhttp.onload = function() {
                       document.getElementById("cheatsheets_div").innerHTML = this.responseText;
                     }
-                    xhttp.open("GET", "/snippets?pattern=" + pattern +
+                    xhttp.open("GET", "/snippets?pattern=" + btoa(patterns) +
                       "&fuzzy=" + fuzzy);
                     xhttp.send();
                   }
@@ -211,12 +213,11 @@ class AppAPI:
                 prev_section = None
                 for b in display_cheatsheets_section.cheatsheets:
                     md_snippet = to_markdown(b.snippet)
-                    section = highlight(b.escaped_chars_section, b.section_indexes)
 
                     if b.section and b.section != prev_section:
                         prev_section = b.section
                         cheatsheets_section += "<hr><hr>"
-                        cheatsheets_section += f"<br><u><b><h1>{section}</h1></b></u>"
+                        cheatsheets_section += f"<br><u><b><h1>{b.section}</h1></b></u>"
 
                     cheatsheets_section += "<hr>"
                     cheatsheets_section += f"{md_snippet}<br>"
@@ -260,17 +261,27 @@ class AppAPI:
 
         @self.app_api.route(Route.CHEATSHEETS.value)
         def cheatsheet():
-            pattern = request.args.get("pattern")
+            patterns = request.args.get("pattern")
+            if patterns:
+                patterns = base64.b64decode(patterns).decode('utf-8')
+                patterns = patterns.split()
+            else:
+                patterns = []
+
             is_fuzzy = request.args.get("fuzzy", IS_FUZZY_DEFAULT)
             is_fuzzy = is_fuzzy.lower() == "true"
-            return _cheatsheets_section(self.app.display_cheatsheets(pattern, is_fuzzy))
+
+            return _cheatsheets_section(self.app.display_cheatsheets(patterns, is_fuzzy))
 
         @self.app_api.route(Route.INDEX.value)
         def index():
             pattern = request.args.get("pattern")
+            patterns = [pattern] if pattern else []
+
             is_fuzzy = request.args.get("fuzzy", IS_FUZZY_DEFAULT)
             is_fuzzy = is_fuzzy.lower() == "true"
-            return _main_page(None, self.app.display_cheatsheets(pattern, is_fuzzy), None)
+
+            return _main_page(None, self.app.display_cheatsheets(patterns, is_fuzzy), None)
 
         @self.app_api.route(Route.ADD_CHEATSHEET.value, methods=["POST"])
         def add_cheatsheet():

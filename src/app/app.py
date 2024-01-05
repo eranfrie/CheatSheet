@@ -23,7 +23,7 @@ class App:
     def __init__(self, server):
         self.server = server
 
-    def display_cheatsheets(self, pattern, is_fuzzy):
+    def display_cheatsheets(self, patterns, is_fuzzy):
         """
         Args:
             pattern (str | None): a pattern to filter results
@@ -33,16 +33,7 @@ class App:
             display_cheatsheets_section: DisplayCheatsheetsSection object
         """
         try:
-            cheatsheets = self.server.get_cheatsheets(pattern, is_fuzzy)
-
-            # clean last search
-            if not pattern:
-                for b in cheatsheets:
-                    if b.snippet_indexes:
-                        b.snippet_indexes.clear()
-                    if b.section_indexes:
-                        b.section_indexes.clear()
-
+            cheatsheets = self.server.get_cheatsheets(patterns, is_fuzzy)
             return DisplayCheatsheetsSection(cheatsheets, None)
         except InternalException:
             return DisplayCheatsheetsSection(None, GET_CHEATSHEETS_ERR_MSG)

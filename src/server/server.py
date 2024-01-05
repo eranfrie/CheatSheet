@@ -44,13 +44,16 @@ class Server:
         self._cache = cheatsheets
         return self._cache
 
-    def get_cheatsheets(self, pattern, is_fuzzy):
+    def get_cheatsheets(self, patterns, is_fuzzy):
         cheatsheets = self._get_all_cheatsheets()
-        if not pattern:
+        if not patterns:
             return cheatsheets
 
-        pattern = pattern.lower()
-        return [b for b in cheatsheets if b.match(pattern, is_fuzzy)]
+        matches = cheatsheets
+        patterns = [p.lower() for p in patterns]
+        for p in patterns:
+            matches = [m for m in matches if m.match(p, is_fuzzy)]
+        return matches
 
     def add_cheatsheet(self, snippet, section):
         self._invalidate_cache()

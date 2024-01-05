@@ -17,32 +17,3 @@ class TestHTMLUtils:
         assert html_utils.split_escaped_text("&lt;ab") == ["&lt;", "a", "b"]
         assert html_utils.split_escaped_text("ab&gt;") == ["a", "b", "&gt;"]
         assert html_utils.split_escaped_text("a&amp;b") == ["a", "&amp;", "b"]
-
-    def test_highlight(self):
-        assert html_utils.highlight(None,
-                                    None) == ""
-        assert html_utils.highlight([],
-                                    None) == ""
-
-        assert html_utils.highlight(["a", "b", "c"],
-                                    None) == "abc"
-        assert html_utils.highlight(["a", "b", "c"],
-                                    {}) == "abc"
-        assert html_utils.highlight(["a", "b", "c"],
-                                    {}) == "abc"
-
-        assert html_utils.highlight(["a"],
-                                    {}) == "a"
-        assert html_utils.highlight(["a"],
-                                    {0}) == "<mark>a</mark>"
-        assert html_utils.highlight(["a", "b", "c"],
-                                    {0}) == "<mark>a</mark>bc"
-        assert html_utils.highlight(["a", "b", "c"],
-                                    {0, 2}) == "<mark>a</mark>b<mark>c</mark>"
-        assert html_utils.highlight(["a", "b", "c"],
-                                    {0, 2, 1}) == "<mark>a</mark><mark>b</mark><mark>c</mark>"
-
-        assert html_utils.highlight(["a", "&amp;", "c"],
-                                    {0}) == "<mark>a</mark>&amp;c"
-        assert html_utils.highlight(["a", "&amp;", "c"],
-                                    {1}) == "a<mark>&amp;</mark>c"
