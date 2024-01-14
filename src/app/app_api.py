@@ -59,8 +59,9 @@ def to_markdown(snippet):
 
 class AppAPI:
     # pylint: disable=R0915, R0914 (too-many-statements, too-many-locals)
-    def __init__(self, app):
+    def __init__(self, app, default_fuzzy_search):
         self.app = app
+        self.default_fuzzy_search = default_fuzzy_search
         self.app_api = Flask(__name__)
 
         def _status_to_color(status):
@@ -108,6 +109,8 @@ class AppAPI:
             return html
 
         def _search_section():
+            checked = "checked" if self.default_fuzzy_search else ""
+            fuzzy_checkbox = f'<input type="checkbox" id="fuzzy" {checked}>'
             return """
                 <br>
                 Search:
@@ -115,7 +118,9 @@ class AppAPI:
                 <textarea id="searchCheatsheet" name="searchCheatsheet" rows="3" cols="30"></textarea><br>
                 <br>
 
-                <input type="checkbox" id="fuzzy" checked>
+                """ \
+                + fuzzy_checkbox + \
+                """
                 <label for="fuzzy"> Fuzzy search</label><br>
                 <br>
 
