@@ -269,7 +269,7 @@ class AppAPI:
             patterns = request.args.get("pattern")
             if patterns:
                 patterns = base64.b64decode(patterns).decode('utf-8')
-                patterns = patterns.split()
+                patterns = patterns.splitlines()
             else:
                 patterns = []
 
