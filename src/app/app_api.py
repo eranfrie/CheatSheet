@@ -181,7 +181,8 @@ class AppAPI:
             return html
 
         def _cheatsheets_section(display_cheatsheets_section):
-            cheatsheets_section = '<div id="cheatsheets_div">'
+            cheatsheets_section = '<body style="overflow-wrap: break-word;">'
+            cheatsheets_section += '<div id="cheatsheets_div">'
 
             if display_cheatsheets_section.cheatsheets is not None:
                 # icon library
@@ -237,6 +238,7 @@ class AppAPI:
 
             cheatsheets_section += '<br></div>'
 
+            cheatsheets_section += '</body>'
             return cheatsheets_section
 
         def _status_section(status_section):
