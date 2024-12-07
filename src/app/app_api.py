@@ -19,6 +19,7 @@ logger = logging.getLogger()
 class Route (Enum):
     INDEX = "/"
     CHEATSHEETS = "/snippets"
+    SEMANTIC_SEARCH = "/semanticSearch"
     ADD_CHEATSHEET = "/add_snippet"
     EDIT_FORM = "/edit"  # edit form (GET)
     EDIT_SNIPPET = "/edit_snippet"  # edit and display all (POST)
@@ -157,6 +158,31 @@ class AppAPI:
                 </script>
             """
 
+        def _semantic_search_section():
+            return """
+                <br>
+                Semantic search:
+                <br>
+                <textarea id="semanticSearchCheatsheet" name="semanticSearchCheatsheet" rows="3" cols="30"></textarea><br>
+                <br>
+
+                <script type="text/javascript">
+                  function semanticSearchEvent()
+                  {
+                    query = document.getElementById("semanticSearchCheatsheet").value;
+                    const xhttp = new XMLHttpRequest();
+                    xhttp.onload = function() {
+                      document.getElementById("semantic_search_result_div").innerHTML = this.responseText;
+                    }
+                    xhttp.open("GET", "/semanticSearch?query=" + btoa(query));
+                    xhttp.send();
+                  }
+                </script>
+
+                <button class="btn" onclick="semanticSearchEvent()">Search</button>
+                <div id="semantic_search_result_div"></div>
+            """
+
         def _header():
             return f'<h1 style="text-align:center">' \
                    f'<a href="/" style="color:black; text-decoration: none;">{opts.PROD_NAME}</a>' \
@@ -214,6 +240,7 @@ class AppAPI:
                     </script>
                 """
 
+                cheatsheets_section += "<br><br><hr><br>"
                 cheatsheets_section += f"Total: {len(display_cheatsheets_section.cheatsheets)}<br><br>"
 
                 prev_section = None
@@ -264,6 +291,8 @@ class AppAPI:
                 _cheatsheet_form(CheatsheetFormType.ADD, add_cheatsheet_section, sections) + \
                 "<hr>" + \
                 _search_section() + \
+                "<hr>" + \
+                _semantic_search_section() + \
                 _cheatsheets_section(display_cheatsheets_section)
 
         @self.app_api.route(Route.CHEATSHEETS.value)
@@ -279,6 +308,18 @@ class AppAPI:
             is_fuzzy = is_fuzzy.lower() == "true"
 
             return _cheatsheets_section(self.app.display_cheatsheets(patterns, is_fuzzy))
+
+        @self.app_api.route(Route.SEMANTIC_SEARCH.value)
+        def semantic_search():
+            query = request.args.get("query")
+            if query:
+                query = base64.b64decode(query).decode('utf-8')
+            else:
+                return ""  # TODO display HTML ...
+            snippet = self.app.do_semantic_search(query)
+            md_snippet = to_markdown("# Most relevant cheatsheet:\n\n" + snippet)
+            return md_snippet
+            # return _cheatsheets_section(self.app.display_cheatsheets(patterns, is_fuzzy))
 
         @self.app_api.route(Route.INDEX.value)
         def index():

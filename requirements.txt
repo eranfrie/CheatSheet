@@ -4,3 +4,6 @@ Flask==2.0.3
 Markdown==3.3.7
 
 Werkzeug==2.2.2
+
+# AI
+sentence-transformers==3

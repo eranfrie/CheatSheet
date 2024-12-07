@@ -2,6 +2,7 @@ import logging
 
 from server.cheatsheet import Cheatsheet
 from server.server_api import InternalException, SnippetRequiredException
+from server.semantic_search import SemanticSearch
 
 
 logger = logging.getLogger()
@@ -11,6 +12,7 @@ class Server:
     def __init__(self, db):
         self.db = db
         self._cache = None
+        self._semantic_search = SemanticSearch()
 
     def _invalidate_cache(self):
         logger.debug("invalidating cache")
@@ -54,6 +56,11 @@ class Server:
         for p in patterns:
             matches = [m for m in matches if m.match(p, is_fuzzy)]
         return matches
+
+    def perform_Semantic_search(self, query):
+        cheatsheets = self._get_all_cheatsheets()
+        cheatsheet_documents = [c.snippet for c in cheatsheets]
+        return self._semantic_search.get_similar_cheatsheet(query, cheatsheet_documents)
 
     def add_cheatsheet(self, snippet, section):
         self._invalidate_cache()
