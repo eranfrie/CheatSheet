@@ -7,3 +7,7 @@ default_fuzzy_search: true
 
 host: localhost
 port: 8000
+
+# AI features
+# Disable it if you don't want to run LLM locally
+enable_ai: true
