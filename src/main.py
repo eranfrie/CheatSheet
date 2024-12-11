@@ -45,9 +45,9 @@ def main(override_config):
     logger.info("start running")
     db_filename = Path(output_dir, "cheatsheet.db")
     db = Sqlite(db_filename)
-    server = Server(db)
+    server = Server(db, conf["enable_ai"])
     app = App(server)
-    AppAPI(app, conf["default_fuzzy_search"]).run(conf["host"], conf["port"])  # blocking
+    AppAPI(app, conf["default_fuzzy_search"], conf["enable_ai"]).run(conf["host"], conf["port"])  # blocking
 
 
 if __name__ == "__main__":

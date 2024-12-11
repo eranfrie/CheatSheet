@@ -1,0 +1,4 @@
+# The dependencies in this file are required
+# if running with enable_ai=true.
+
+sentence-transformers==3

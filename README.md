@@ -6,8 +6,26 @@ A productivity self-hosted tool to manage and browse cheatsheet and snippets
 This project is based on [Bookmarker](https://github.com/eranfrie/Bookmarker) code base.
 
 <kbd>
-  <img src="images/cheatsheet.png" width="100%" />
+  <img src="images/cheatsheet_1.png" width="100%" />
 </kbd>
+<kbd>
+  <img src="images/cheatsheet_2.png" width="100%" />
+</kbd>
+
+### Search
+
+Finding a cheatsheet is very easy.
+The search is a multi-line search
+where each line is matched independently
+(`AND` relation between the lines),
+either in a fuzzy or a full-match fashion.
+
+### Semantic Search
+
+In addition to the classic fuzzy/keyword-based search,
+a semantic search is also supported.
+Simply describe what you are looking for in a natural language
+and the most relevant cheatsheet will be presented.
 
 #### Privacy
 
@@ -30,7 +48,12 @@ Note that it is recommended to periodically back up the SQLite file.
 python -m venv <route/to/venv-directory>
 source <route/to/venv-directory>/bin/activate
 pip install -r requirements.txt
+pip install -r requirements_ai.txt
 ```
+Note: If you are not interested in running an LLM locally,
+you can configure `enable_ai` to false
+and skip the last command.
+
 
 ## Running the application
 
