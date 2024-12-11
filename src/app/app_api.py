@@ -19,6 +19,7 @@ logger = logging.getLogger()
 class Route (Enum):
     INDEX = "/"
     CHEATSHEETS = "/snippets"
+    SEMANTIC_SEARCH = "/semanticSearch"
     ADD_CHEATSHEET = "/add_snippet"
     EDIT_FORM = "/edit"  # edit form (GET)
     EDIT_SNIPPET = "/edit_snippet"  # edit and display all (POST)
@@ -59,9 +60,10 @@ def to_markdown(snippet):
 
 class AppAPI:
     # pylint: disable=R0915, R0914 (too-many-statements, too-many-locals)
-    def __init__(self, app, default_fuzzy_search):
+    def __init__(self, app, default_fuzzy_search, enable_ai):
         self.app = app
         self.default_fuzzy_search = default_fuzzy_search
+        self.enable_ai = enable_ai
         self.app_api = Flask(__name__)
 
         def _status_to_color(status):
@@ -157,6 +159,31 @@ class AppAPI:
                 </script>
             """
 
+        def _semantic_search_section():
+            return """
+                <br>
+                Semantic search:
+                <br>
+                <textarea id="semanticSearchCheatsheet" name="semanticSearchCheatsheet" rows="3" cols="30"></textarea><br>
+                <br>
+
+                <script type="text/javascript">
+                  function semanticSearchEvent()
+                  {
+                    query = document.getElementById("semanticSearchCheatsheet").value;
+                    const xhttp = new XMLHttpRequest();
+                    xhttp.onload = function() {
+                      document.getElementById("semantic_search_result_div").innerHTML = this.responseText;
+                    }
+                    xhttp.open("GET", "/semanticSearch?query=" + btoa(query));
+                    xhttp.send();
+                  }
+                </script>
+
+                <button class="btn" onclick="semanticSearchEvent()">Search</button>
+                <div id="semantic_search_result_div"></div>
+            """
+
         def _header():
             return f'<h1 style="text-align:center">' \
                    f'<a href="/" style="color:black; text-decoration: none;">{opts.PROD_NAME}</a>' \
@@ -214,6 +241,8 @@ class AppAPI:
                     </script>
                 """
 
+                if self.enable_ai:
+                    cheatsheets_section += "<br><br><hr><br>"
                 cheatsheets_section += f"Total: {len(display_cheatsheets_section.cheatsheets)}<br><br>"
 
                 prev_section = None
@@ -258,12 +287,18 @@ class AppAPI:
                         prev_section = b.section
                         sections.append(b.section)
 
+            ai_section = ""
+            if self.enable_ai:
+                ai_section = "<hr>" + \
+                    _semantic_search_section()
+
             return _header() + \
                 _menu(Page.HOME) + \
                 _status_section(status_section) + \
                 _cheatsheet_form(CheatsheetFormType.ADD, add_cheatsheet_section, sections) + \
                 "<hr>" + \
                 _search_section() + \
+                ai_section + \
                 _cheatsheets_section(display_cheatsheets_section)
 
         @self.app_api.route(Route.CHEATSHEETS.value)
@@ -279,6 +314,20 @@ class AppAPI:
             is_fuzzy = is_fuzzy.lower() == "true"
 
             return _cheatsheets_section(self.app.display_cheatsheets(patterns, is_fuzzy))
+
+        @self.app_api.route(Route.SEMANTIC_SEARCH.value)
+        def semantic_search():
+            query = request.args.get("query")
+            if not query:
+                return ""
+
+            query = base64.b64decode(query).decode('utf-8')
+            snippet = self.app.do_semantic_search(query)
+            if not snippet:
+                return ""
+
+            md_snippet = to_markdown("# Most relevant cheatsheet:\n\n" + snippet)
+            return md_snippet
 
         @self.app_api.route(Route.INDEX.value)
         def index():
