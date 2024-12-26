@@ -258,7 +258,7 @@ class AppAPI:
                     cheatsheets_section += f"{md_snippet}<br>"
                     cheatsheets_section += '<button class="btn" ' \
                         f'onclick="window.location.href=\'{Route.EDIT_FORM.value}?id={b.id}\'">' \
-                        '<i class="fa fa-edit"></i></button>'
+                        '<i class="fa fa-edit"></i></button> '
                     cheatsheets_section += f'<button class="btn" onclick="deleteCheatsheet({b.id})">' \
                         '<i class="fa fa-trash"></i></button>'
             else:
