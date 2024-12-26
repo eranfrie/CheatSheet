@@ -177,8 +177,14 @@ class AppAPI:
                     const xhttp = new XMLHttpRequest();
                     xhttp.onload = function() {
                       document.getElementById("semantic_search_result_div").innerHTML = this.responseText;
+
+                      // eval the scripts
+                      const scripts = document.querySelectorAll('#semantic_search_result_div script');
+                      scripts.forEach(script => {
+                        eval(script.textContent);
+                      });
                     }
-                    xhttp.open("GET", "/semanticSearch?query=" + btoa(query));
+                    xhttp.open("GET", "/semanticSearch?index=0&query=" + btoa(query));
                     xhttp.send();
                   }
                 </script>
@@ -323,15 +329,75 @@ class AppAPI:
             query = request.args.get("query")
             if not query:
                 return ""
+            search_res_idx = request.args.get("index")
+            if not search_res_idx:
+                return ""
+            try:
+                search_res_idx = int(search_res_idx)
+            except:
+                logger.exception("invalid index argument: index=%s", search_res_idx)
+                return ""
 
             query = base64.b64decode(query).decode('utf-8')
-            cheatsheet_id, snippet = self.app.do_semantic_search(query)
+            # search_res_idx may be different than requested if it's out of valid boundaries
+            search_res_idx, cheatsheet_id, snippet = self.app.do_semantic_search(search_res_idx, query)
             if not snippet:
                 return ""
 
-            md_snippet = to_markdown("# Most relevant cheatsheet:\n\n" + snippet)
+            # there is a result - render the html
 
-            response = md_snippet + '<br>'
+            response = to_markdown("# Most relevant cheatsheet:")
+
+            # left and right arrows to get prev/next semantic search result
+            response += """
+                <div style="font-size:50px;">
+                  <span id="left-arrow" style="cursor:pointer;">&#8592;</span> <!-- Left arrow -->
+            """
+            response += f"""
+                  <span id="searchResIdx" style="font-size:30px;">{search_res_idx+1}</span> <!-- Search result index -->
+            """
+            response += """
+                  <span id="right-arrow" style="cursor:pointer;">&#8594;</span> <!-- Right arrow -->
+                </div>
+
+                <script>
+                  function update_result(idx) {
+                    query = document.getElementById("semanticSearchCheatsheet").value;
+                    const xhttp = new XMLHttpRequest();
+                    xhttp.onload = function() {
+                      document.getElementById("semantic_search_result_div").innerHTML = this.responseText;
+
+                      // eval the scripts
+                      const scripts = document.querySelectorAll('#semantic_search_result_div script');
+                      scripts.forEach(script => {
+                        eval(script.textContent);
+                      });
+                    }
+                    xhttp.open("GET", "/semanticSearch?index=" + idx + "&query=" + btoa(query));
+                    xhttp.send();
+                  }
+
+                  function decreaseNumber() {
+            """
+            response += f"update_result({search_res_idx} - 1);"
+            response += """
+                  }
+
+                  function increaseNumber() {
+            """
+            response += f"update_result({search_res_idx} + 1);"
+            response += """
+                  }
+
+                  // add event listeners to the arrows
+                  document.getElementById('left-arrow').addEventListener('click', decreaseNumber);
+                  document.getElementById('right-arrow').addEventListener('click', increaseNumber);
+                </script>
+            """
+
+            response += to_markdown(snippet)
+            response += '<br>'
+
             response += '<button class="btn" ' \
                 f'onclick="window.location.href=\'{Route.EDIT_FORM.value}?id={cheatsheet_id}\'">' \
                 '<i class="fa fa-edit"></i></button> '

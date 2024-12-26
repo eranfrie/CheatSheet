@@ -38,8 +38,8 @@ class App:
         except InternalException:
             return DisplayCheatsheetsSection(None, GET_CHEATSHEETS_ERR_MSG)
 
-    def do_semantic_search(self, query):
-        return self.server.perform_semantic_search(query)
+    def do_semantic_search(self, search_res_idx, query):
+        return self.server.perform_semantic_search(search_res_idx, query)
 
     def add_cheatsheet(self, snippet, section):
         logger.info("got request to add cheatsheet: snippet=%s, section=%s",

@@ -58,14 +58,21 @@ class Server:
             matches = [m for m in matches if m.match(p, is_fuzzy)]
         return matches
 
-    def perform_semantic_search(self, query):
+    def perform_semantic_search(self, search_res_idx, query):
         cheatsheets = self._get_all_cheatsheets()
         if not cheatsheets:
             return None
+
+        # check we are not out of boundary
+        if search_res_idx < 0:
+            search_res_idx = 0
+        elif search_res_idx >= len(cheatsheets):
+            search_res_idx = len(cheatsheets) - 1
+
         snippets = [c.snippet for c in cheatsheets]
-        most_similar_idx = self._semantic_search.get_similar_cheatsheet(query, snippets)
+        most_similar_idx = self._semantic_search.get_similar_cheatsheet(search_res_idx, query, snippets)
         cheatsheet = cheatsheets[most_similar_idx]
-        return cheatsheet.id, cheatsheet.snippet
+        return search_res_idx, cheatsheet.id, cheatsheet.snippet
 
     def add_cheatsheet(self, snippet, section):
         self._invalidate_cache()

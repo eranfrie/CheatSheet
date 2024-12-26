@@ -1,6 +1,7 @@
 # needed only if enable_ai is true.
 # worst case, fail in runtime
 try:
+    import numpy as np
     from sentence_transformers import SentenceTransformer
     from sklearn.metrics.pairwise import cosine_similarity
 except:
@@ -23,7 +24,7 @@ class SemanticSearch:
 
         return self._model.encode(text_list)
 
-    def get_similar_cheatsheet(self, query, context_documents):
+    def get_similar_cheatsheet(self, search_res_idx, query, context_documents):
         if not self._model:
             self._load_model()
 
@@ -31,5 +32,5 @@ class SemanticSearch:
         context_embeddings = self._encode_text(context_documents)
 
         similarities = cosine_similarity(query_embedding, context_embeddings)
-        most_similar_idx = similarities.argmax()
-        return most_similar_idx
+        similar_indices = np.argsort(similarities[0])[::-1]
+        return similar_indices[search_res_idx]

@@ -1,4 +1,5 @@
 # The dependencies in this file are required
 # if running with enable_ai=true.
 
+numpy==2
 sentence-transformers==3
