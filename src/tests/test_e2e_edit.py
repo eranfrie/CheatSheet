@@ -27,7 +27,8 @@ class TestE2eEdit(TestE2eBase):
         """Edit fails because snippet is a required field."""
         self._add_cheatsheet_to_db("test_snippet_1", "test_section_1")
         response = self._edit_cheatsheet(1, "", "test_section_2")
-        assert "test_snippet_2" not in response.text and "test_section_2" in response.text
+        assert "test_snippet_1" not in response.text
+        assert "test_section_2" in response.text
         assert app.SNIPPET_REQUIRED_MSG in response.text
         # stay in edit form
         assert "Edit a snippet" in response.text
