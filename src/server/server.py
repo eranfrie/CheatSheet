@@ -63,7 +63,9 @@ class Server:
         if not cheatsheets:
             return None
         snippets = [c.snippet for c in cheatsheets]
-        return self._semantic_search.get_similar_cheatsheet(query, snippets)
+        most_similar_idx = self._semantic_search.get_similar_cheatsheet(query, snippets)
+        cheatsheet = cheatsheets[most_similar_idx]
+        return cheatsheet.id, cheatsheet.snippet
 
     def add_cheatsheet(self, snippet, section):
         self._invalidate_cache()

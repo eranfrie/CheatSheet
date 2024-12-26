@@ -325,12 +325,20 @@ class AppAPI:
                 return ""
 
             query = base64.b64decode(query).decode('utf-8')
-            snippet = self.app.do_semantic_search(query)
+            cheatsheet_id, snippet = self.app.do_semantic_search(query)
             if not snippet:
                 return ""
 
             md_snippet = to_markdown("# Most relevant cheatsheet:\n\n" + snippet)
-            return md_snippet
+
+            response = md_snippet + '<br>'
+            response += '<button class="btn" ' \
+                f'onclick="window.location.href=\'{Route.EDIT_FORM.value}?id={cheatsheet_id}\'">' \
+                '<i class="fa fa-edit"></i></button> '
+            response += f'<button class="btn" onclick="deleteCheatsheet({cheatsheet_id})">' \
+                '<i class="fa fa-trash"></i></button>'
+
+            return response
 
         @self.app_api.route(Route.INDEX.value)
         def index():

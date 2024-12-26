@@ -32,4 +32,4 @@ class SemanticSearch:
 
         similarities = cosine_similarity(query_embedding, context_embeddings)
         most_similar_idx = similarities.argmax()
-        return context_documents[most_similar_idx]
+        return most_similar_idx
