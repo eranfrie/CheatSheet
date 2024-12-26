@@ -20,12 +20,14 @@ class CheatsheetSection:
             empty string ("") to display the placeholder.
         last_section (str | ""): section to be displayed in the "add cheatsheet" input field.
             empty string ("") to display the placeholder.
-        snippet_id: relevant if it's an edit form, otherwise None
+        snippet_id: relevant only if it's an edit form, otherwise None
+        preview_snippet: relevant only if it's an edit form, otherwise None
     """
-    def __init__(self, last_snippet, last_section, snippet_id):
+    def __init__(self, last_snippet, last_section, snippet_id, preview_snippet):
         self.last_snippet = last_snippet
         self.last_section = last_section
         self.snippet_id = snippet_id
+        self.preview_snippet = preview_snippet
 
 
 class StatusSection:

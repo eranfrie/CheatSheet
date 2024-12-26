@@ -47,20 +47,20 @@ class App:
 
         try:
             self.server.add_cheatsheet(snippet, section)
-            cheatsheet_section = CheatsheetSection("", "", None)
+            cheatsheet_section = CheatsheetSection("", "", None, None)
             status_section = StatusSection(True, ADD_CHEATSHEET_OK_MSG)
         except InternalException:
-            cheatsheet_section = CheatsheetSection(snippet, section, None)
+            cheatsheet_section = CheatsheetSection(snippet, section, None, None)
             status_section = StatusSection(False, ADD_CHEATSHEET_ERR_MSG)
         except SnippetRequiredException:
-            cheatsheet_section = CheatsheetSection(snippet, section, None)
+            cheatsheet_section = CheatsheetSection(snippet, section, None, None)
             status_section = StatusSection(False, SNIPPET_REQUIRED_MSG)
 
         # escape cheatsheet_section
         escaped_cheatsheets_section = CheatsheetSection(
             html_escape(cheatsheet_section.last_snippet),
             html_escape(cheatsheet_section.last_section),
-            None
+            None, None
         )
 
         return status_section, self.display_cheatsheets(None, None), escaped_cheatsheets_section
@@ -74,14 +74,14 @@ class App:
 
         try:
             self.server.edit_cheatsheet(snippet_id, snippet, section)
-            cheatsheet_section = CheatsheetSection("", "", None)
+            cheatsheet_section = CheatsheetSection("", "", None, None)
             status_section = StatusSection(True, EDIT_CHEATSHEET_OK_MSG)
         except InternalException:
-            cheatsheet_section = CheatsheetSection(snippet, section, None)
+            cheatsheet_section = CheatsheetSection(snippet, section, None, None)
             status_section = StatusSection(False, EDIT_CHEATSHEET_ERR_MSG)
             return status_section, None, None
         except SnippetRequiredException:
-            cheatsheet_section = CheatsheetSection(snippet, section, None)
+            cheatsheet_section = CheatsheetSection(snippet, section, None, None)
             status_section = StatusSection(False, SNIPPET_REQUIRED_MSG)
             return status_section, None, None
 
@@ -89,6 +89,7 @@ class App:
         escaped_cheatsheets_section = CheatsheetSection(
             html_escape(cheatsheet_section.last_snippet),
             html_escape(cheatsheet_section.last_section),
+            None,
             None
         )
 

@@ -72,7 +72,7 @@ class AppAPI:
         def _cheatsheet_form(cheatsheet_form_type, cheatsheet_section, sections):
             """A form to add/edit a cheatsheet."""
             if not cheatsheet_section:
-                cheatsheet_section = CheatsheetSection("", "", None)
+                cheatsheet_section = CheatsheetSection("", "", None, None)
 
             html = """
                 <script type="text/javascript">
@@ -105,7 +105,10 @@ class AppAPI:
                     f'placeholder="Snippet"  oninput=preview()>{cheatsheet_section.last_snippet}' \
                     '</textarea><br>' \
                     '<h3>Preview:</h3>' \
-                    '<div id="preview_div"></div><br>' \
+                    '<div id="preview_div">'
+            if cheatsheet_section.preview_snippet:
+                html += cheatsheet_section.preview_snippet
+            html += '</div><br>' \
                     '<input onclick="this.form.submit();this.disabled = true;" type="submit">' \
                     '</form>'
             return html
@@ -356,7 +359,8 @@ class AppAPI:
             return f"{md_snippet}<br>"
 
         def _display_edit_form(snippet, section, snippet_id, status_section):
-            cheatsheet_section = CheatsheetSection(snippet, section, snippet_id)
+            md_snippet = to_markdown(snippet)
+            cheatsheet_section = CheatsheetSection(snippet, section, snippet_id, md_snippet)
             sections = {}
             return _header() + \
                 _menu(None) + \
