@@ -68,7 +68,7 @@ class TestE2eBase:
     def _add_cheatsheet_to_db(self, snippet, section):
         db_filename = Path(OUTPUT_DIR, DB_FILENAME)
         db = Sqlite(db_filename)
-        db.add_cheatsheet(snippet, section)
+        db.add_cheatsheet(snippet, section, False)
 
     def _count_cheatsheets_in_db(self):
         db_filename = Path(OUTPUT_DIR, DB_FILENAME)

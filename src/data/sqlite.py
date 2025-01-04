@@ -18,6 +18,7 @@ def record_to_json(record):
         "id": record[0],
         "section": record[1],
         "snippet": record[2],
+        "is_favorited": bool(record[3]),
     }
 
 
@@ -27,6 +28,7 @@ class Sqlite:
         logger.info("DB filename = %s", self.db_filename)
 
         self._create_tables_if_not_exists()
+        self._migrate_db()
 
     def _connect(self):
         conn = sqlite3.connect(self.db_filename)
@@ -43,10 +45,42 @@ class Sqlite:
             f"CREATE TABLE IF NOT EXISTS {CHEATSHEETS_TABLE} (" \
             "id integer PRIMARY KEY," \
             "section text," \
-            "snippet text NOT NULL" \
+            "snippet text NOT NULL," \
+            "is_favorited BOOLEAN NOT NULL" \
             ");"
         cursor.execute(cheatsheets_table)
         Sqlite._close(conn)
+
+    def _migrate_db(self):
+        """Migrate the DB tabke if needed.
+
+        A 'is_favorited' column was added. This function checks
+        if it's missing and creates it with 'false' values.
+        """
+        if self._does_column_exist("is_favorited"):
+            return
+
+        logger.info("'is_favorited' is missing - creating it")
+
+        conn, cursor = self._connect()
+        cursor.execute(f"ALTER TABLE {CHEATSHEETS_TABLE} ADD COLUMN is_favorited BOOLEAN")
+        cursor.execute(f"UPDATE {CHEATSHEETS_TABLE} SET is_favorited=False;");
+        Sqlite._close(conn)
+
+    def _does_column_exist(self, column_name):
+        conn, cursor = self._connect()
+
+        column_exists = False
+
+        cursor.execute(f"PRAGMA table_info({CHEATSHEETS_TABLE})")
+        columns = cursor.fetchall()
+        for column in columns:
+            if column[1] == column_name:
+                column_exists = True
+                break
+
+        Sqlite._close(conn)
+        return column_exists
 
     def read_all_cheatsheets(self):
         """
@@ -86,12 +120,13 @@ class Sqlite:
         Sqlite._close(conn)
         return cheatsheet
 
-    def add_cheatsheet(self, snippet, section):
+    def add_cheatsheet(self, snippet, section, is_favorited):
         conn, cursor = self._connect()
         try:
-            cursor.execute(f"INSERT INTO {CHEATSHEETS_TABLE} (section, snippet) "
+            cursor.execute(f"INSERT INTO {CHEATSHEETS_TABLE} (section, snippet, is_favorited) "
                            f"VALUES ('{sql_escape(section)}', "
-                           f"'{sql_escape(snippet)}');")
+                           f"'{sql_escape(snippet)}', "
+                           f"{is_favorited});")
         finally:
             Sqlite._close(conn)
 
@@ -102,6 +137,24 @@ class Sqlite:
                            f"SET section='{sql_escape(section)}', "
                            f"snippet='{sql_escape(snippet)}' "
                            f"WHERE id={snippet_id};")
+        finally:
+            Sqlite._close(conn)
+
+    def toggle_favorited(self, cheatsheet_id):
+        cheatsheet = self.read_cheatsheet(cheatsheet_id)
+
+        was_favorited = cheatsheet["is_favorited"]
+        new_state = not was_favorited
+
+        conn, cursor = self._connect()
+        try:
+            cursor.execute(f"UPDATE {CHEATSHEETS_TABLE} "
+                           f"SET "
+                           f"is_favorited={new_state} "
+                           f"WHERE id={cheatsheet_id};")
+            return new_state
+        except Exception:
+            return not new_state
         finally:
             Sqlite._close(conn)
 

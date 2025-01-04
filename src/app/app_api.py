@@ -12,6 +12,7 @@ from app.app_sections import CheatsheetSection
 
 INC_URL_DEFAULT = "false"
 IS_FUZZY_DEFAULT = "true"
+FAVORITES_ONLY_DEFAULT = "false"
 
 logger = logging.getLogger()
 
@@ -23,6 +24,7 @@ class Route (Enum):
     ADD_CHEATSHEET = "/add_snippet"
     EDIT_FORM = "/edit"  # edit form (GET)
     EDIT_SNIPPET = "/edit_snippet"  # edit and display all (POST)
+    TOGGLE_FAVORITED = "/toggleFavorited"
     DELETE_CHEATSHEET = "/delete_snippet"
     PREVIEW = "/preview"
     ABOUT = "/about"
@@ -56,6 +58,13 @@ def to_markdown(snippet):
         "<code>",
         '<code style="background-color:LightGray;">')
     return md_snippet
+
+
+def get_favorite_star_color(is_favorited):
+    if is_favorited:
+        return "red"
+    else:
+        return "lightgray"
 
 
 class AppAPI:
@@ -127,6 +136,10 @@ class AppAPI:
                 + fuzzy_checkbox + \
                 """
                 <label for="fuzzy"> Fuzzy search</label><br>
+
+                <input type="checkbox" id="favoritesonly">
+                <label for="favoritesonly"> Favorites only</label><br>
+
                 <br>
 
                 <script type="text/javascript">
@@ -134,17 +147,26 @@ class AppAPI:
                   {
                     patterns = document.getElementById("searchCheatsheet").value;
                     fuzzy = document.getElementById("fuzzy").checked;
+                    favorites_only = document.getElementById("favoritesonly").checked;
 
                     const xhttp = new XMLHttpRequest();
                     xhttp.onload = function() {
                       document.getElementById("cheatsheets_div").innerHTML = this.responseText;
+
+                      // eval the scripts
+                      const scripts = document.querySelectorAll('#cheatsheets_div script');
+                      scripts.forEach(script => {
+                        eval(script.textContent);
+                      });
                     }
                     xhttp.open("GET", "/snippets?pattern=" + btoa(patterns) +
-                      "&fuzzy=" + fuzzy);
+                      "&fuzzy=" + fuzzy +
+                      "&favoritesonly=" + favorites_only);
                     xhttp.send();
                   }
 
                   fuzzy.addEventListener("input", searchEvent);
+                  favoritesonly.addEventListener("input", searchEvent);
                   searchCheatsheet.addEventListener("input", searchEvent);
 
                   window.onkeydown = function(e) {
@@ -158,6 +180,16 @@ class AppAPI:
                       document.getElementById("searchCheatsheet").value = '';
                       searchEvent()
                     }
+                  }
+
+                  function toggle_favorited(cheatsheet_id)
+                  {
+                    const xhttp = new XMLHttpRequest();
+                    xhttp.onload = function() {
+                      document.getElementById("favoriteStar_" + cheatsheet_id).style.color = this.responseText;
+                    }
+                    xhttp.open("POST", "/toggleFavorited?cheatsheet_id=" + cheatsheet_id);
+                    xhttp.send();
                   }
                 </script>
             """
@@ -269,7 +301,17 @@ class AppAPI:
                         f'onclick="window.location.href=\'{Route.EDIT_FORM.value}?id={b.id}\'">' \
                         '<i class="fa fa-edit"></i></button> '
                     cheatsheets_section += f'<button class="btn" onclick="deleteCheatsheet({b.id})">' \
-                        '<i class="fa fa-trash"></i></button>'
+                        '<i class="fa fa-trash"></i></button> '
+
+                    star_color = get_favorite_star_color(b.is_favorited)
+                    cheatsheets_section += f'<span id="favoriteStar_{b.id}" style="color:{star_color}; cursor:pointer;">&#9733;</span> <!-- Star symbol -->'
+                    cheatsheets_section += '<script>' \
+                        f'document.getElementById("favoriteStar_{b.id}").addEventListener("click", function()' \
+                        '{' \
+                        f'  toggle_favorited({b.id});' \
+                        '});' \
+                      '</script>'
+
             else:
                 cheatsheets_section = \
                     f'<div style="color:red">{display_cheatsheets_section.display_cheatsheets_err}</div>'
@@ -322,7 +364,10 @@ class AppAPI:
             is_fuzzy = request.args.get("fuzzy", IS_FUZZY_DEFAULT)
             is_fuzzy = is_fuzzy.lower() == "true"
 
-            return _cheatsheets_section(self.app.display_cheatsheets(patterns, is_fuzzy))
+            favorites_only = request.args.get("favoritesonly", FAVORITES_ONLY_DEFAULT)
+            favorites_only = favorites_only.lower() == "true"
+
+            return _cheatsheets_section(self.app.display_cheatsheets(patterns, is_fuzzy, favorites_only))
 
         @self.app_api.route(Route.SEMANTIC_SEARCH.value)
         def semantic_search():
@@ -414,7 +459,10 @@ class AppAPI:
             is_fuzzy = request.args.get("fuzzy", IS_FUZZY_DEFAULT)
             is_fuzzy = is_fuzzy.lower() == "true"
 
-            return _main_page(None, self.app.display_cheatsheets(patterns, is_fuzzy), None)
+            favorites_only = request.args.get("favoritesonly", FAVORITES_ONLY_DEFAULT)
+            favorites_only = favorites_only.lower() == "true"
+
+            return _main_page(None, self.app.display_cheatsheets(patterns, is_fuzzy, favorites_only), None)
 
         @self.app_api.route(Route.ADD_CHEATSHEET.value, methods=["POST"])
         def add_cheatsheet():
@@ -446,7 +494,7 @@ class AppAPI:
             cheatsheet_id = request.args.get("id")
             cheatsheet = self.app.edit_cheatsheet_form(cheatsheet_id)
             if not cheatsheet:
-                return _main_page(None, self.app.display_cheatsheets(None, False), None)
+                return _main_page(None, self.app.display_cheatsheets(None, False, False), None)
 
             return _display_edit_form(cheatsheet.snippet, cheatsheet.section, cheatsheet_id, None)
 
@@ -461,6 +509,12 @@ class AppAPI:
             if not status_section.success:
                 return _display_edit_form(snippet, section, snippet_id, status_section)
             return _main_page(status_section, display_cheatsheets_section, cheatsheet_section)
+
+        @self.app_api.route(Route.TOGGLE_FAVORITED.value, methods=["POST"])
+        def toggle_facorited():
+            cheatsheet_id = request.args.get("cheatsheet_id")
+            is_favorited = self.app.toggle_favorited(cheatsheet_id)
+            return get_favorite_star_color(is_favorited)
 
         @self.app_api.route(Route.DELETE_CHEATSHEET.value, methods=["POST"])
         def delete_cheatsheet():

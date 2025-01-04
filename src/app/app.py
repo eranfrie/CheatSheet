@@ -23,17 +23,18 @@ class App:
     def __init__(self, server):
         self.server = server
 
-    def display_cheatsheets(self, patterns, is_fuzzy):
+    def display_cheatsheets(self, patterns, is_fuzzy, favorites_only):
         """
         Args:
             pattern (str | None): a pattern to filter results
             is_fuzzy (bool): whether to perform a fuzzy search or regular search
+            favorites_only (bool): wjetjer to filter favorited cheatsheets
 
         Returns:
             display_cheatsheets_section: DisplayCheatsheetsSection object
         """
         try:
-            cheatsheets = self.server.get_cheatsheets(patterns, is_fuzzy)
+            cheatsheets = self.server.get_cheatsheets(patterns, is_fuzzy, favorites_only)
             return DisplayCheatsheetsSection(cheatsheets, None)
         except InternalException:
             return DisplayCheatsheetsSection(None, GET_CHEATSHEETS_ERR_MSG)
@@ -63,7 +64,7 @@ class App:
             None, None
         )
 
-        return status_section, self.display_cheatsheets(None, None), escaped_cheatsheets_section
+        return status_section, self.display_cheatsheets(None, None, None), escaped_cheatsheets_section
 
     def edit_cheatsheet_form(self, cheatsheet_id):
         return self.server.get_cheatsheet(cheatsheet_id)
@@ -93,7 +94,10 @@ class App:
             None
         )
 
-        return status_section, self.display_cheatsheets(None, None), escaped_cheatsheets_section
+        return status_section, self.display_cheatsheets(None, None, None), escaped_cheatsheets_section
+
+    def toggle_favorited(self, cheatsheet_id):
+        return self.server.toggle_favorited(cheatsheet_id)
 
     def delete_cheatsheet(self, cheatsheet_id):
         if self.server.delete_cheatsheet(cheatsheet_id):
@@ -102,4 +106,4 @@ class App:
             logger.error("failed to delete cheatsheet %s", cheatsheet_id)
             status_section = StatusSection(False, DELETE_CHEATSHEET_ERR_MSG)
 
-        return status_section, self.display_cheatsheets(None, None)
+        return status_section, self.display_cheatsheets(None, None, None)

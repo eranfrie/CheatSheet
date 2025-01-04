@@ -34,13 +34,15 @@ class Cheatsheet:
             j["id"],
             j["snippet"],
             section,
+            j["is_favorited"],
         )
 
     # pylint: disable=R0913 (too-many-arguments)
-    def __init__(self, cheatsheet_id, snippet, section):
+    def __init__(self, cheatsheet_id, snippet, section, is_favorited):
         self.id = cheatsheet_id
         self.snippet = snippet if snippet else ""
         self.section = section.lower() if section else ""  # section always lower case
+        self.is_favorited = is_favorited
 
         # don't be sensitive around / separators
         sub_sections = self.section.split("/")

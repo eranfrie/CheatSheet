@@ -47,8 +47,12 @@ class Server:
         self._cache = cheatsheets
         return self._cache
 
-    def get_cheatsheets(self, patterns, is_fuzzy):
+    def get_cheatsheets(self, patterns, is_fuzzy, favorites_only):
         cheatsheets = self._get_all_cheatsheets()
+
+        if favorites_only:
+            cheatsheets = [c for c in cheatsheets if c.is_favorited]
+
         if not patterns:
             return cheatsheets
 
@@ -87,7 +91,7 @@ class Server:
             raise SnippetRequiredException()
 
         try:
-            self.db.add_cheatsheet(snippet, section)
+            self.db.add_cheatsheet(snippet, section, False)
             logger.info("cheatsheet added successfully")
         except Exception as e:
             logger.exception("failed to add cheatsheet to db: snippet=%s, section=%s", snippet, section)
@@ -126,6 +130,11 @@ class Server:
             logger.exception("failed to update cheatsheet in db: snippet_id=%s, snippet=%s, section=%s",
                              snippet_id, snippet, section)
             raise InternalException() from e
+
+    def toggle_favorited(self, cheatsheet_id):
+        self._invalidate_cache()
+
+        return self.db.toggle_favorited(cheatsheet_id)
 
     def delete_cheatsheet(self, cheatsheet_id):
         """

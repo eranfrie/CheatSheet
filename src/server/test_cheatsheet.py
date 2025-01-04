@@ -11,7 +11,7 @@ class TestFuzzySearch:
         cheatsheets = []
         for v in values:
             cheatsheets.append(
-                Cheatsheet(1, "", v),
+                Cheatsheet(1, "", v, False),
             )
         cheatsheets.sort()
         for v, b in zip(sorted_values, cheatsheets):
@@ -21,7 +21,7 @@ class TestFuzzySearch:
         cheatsheets = []
         for v in values:
             cheatsheets.append(
-                Cheatsheet(1, v, ""),
+                Cheatsheet(1, v, "", False),
             )
         cheatsheets.sort()
         for v, b in zip(sorted_values, cheatsheets):
