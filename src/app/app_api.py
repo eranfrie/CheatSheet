@@ -221,9 +221,15 @@ class AppAPI:
                     xhttp.open("GET", "/semanticSearch?index=0&query=" + btoa(query));
                     xhttp.send();
                   }
+
+                  function semanticSearchClear()
+                  {
+                    document.getElementById("semantic_search_result_div").innerHTML = "";
+                  }
                 </script>
 
                 <button class="btn" onclick="semanticSearchEvent()">Search</button>
+                <button class="btn" onclick="semanticSearchClear()">Clear</button>
                 <div id="semantic_search_result_div"></div>
             """
 
