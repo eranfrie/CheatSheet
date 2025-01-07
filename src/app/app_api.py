@@ -216,6 +216,8 @@ class AppAPI:
                         eval(script.textContent);
                       });
                     }
+
+                    document.getElementById("semantic_search_result_div").innerHTML = "<h2>Loading ...</h2>";
                     xhttp.open("GET", "/semanticSearch?index=0&query=" + btoa(query));
                     xhttp.send();
                   }
