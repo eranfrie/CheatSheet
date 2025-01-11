@@ -393,7 +393,8 @@ class AppAPI:
 
             query = base64.b64decode(query).decode('utf-8')
             # search_res_idx may be different than requested if it's out of valid boundaries
-            search_res_idx, cheatsheet_id, snippet = self.app.do_semantic_search(search_res_idx, query)
+            search_res_idx, cheatsheet_id, snippet, generated_answer = \
+                self.app.do_semantic_search(search_res_idx, query)
             if not snippet:
                 return ""
 
@@ -450,6 +451,10 @@ class AppAPI:
 
             response += to_markdown(snippet)
             response += '<br>'
+
+            response += to_markdown("# Generated answer:")
+            response += generated_answer
+            response += '<br><br>'
 
             response += '<button class="btn" ' \
                 f'onclick="window.location.href=\'{Route.EDIT_FORM.value}?id={cheatsheet_id}\'">' \

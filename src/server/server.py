@@ -3,6 +3,7 @@ import logging
 from server.cheatsheet import Cheatsheet
 from server.server_api import InternalException, SnippetRequiredException
 from server.semantic_search import SemanticSearch
+from server.gen_ai import GenAI
 
 
 logger = logging.getLogger()
@@ -14,6 +15,7 @@ class Server:
         self._cache = None
         if enable_ai:
             self._semantic_search = SemanticSearch()
+            self._gen_ai = GenAI()
 
     def _invalidate_cache(self):
         logger.debug("invalidating cache")
@@ -76,7 +78,11 @@ class Server:
         snippets = [c.snippet for c in cheatsheets]
         most_similar_idx = self._semantic_search.get_similar_cheatsheet(search_res_idx, query, snippets)
         cheatsheet = cheatsheets[most_similar_idx]
-        return search_res_idx, cheatsheet.id, cheatsheet.snippet
+
+        # generate an answer to the query based on the semantic search result
+        generated_answer = self._gen_ai.generate_answer(cheatsheet.snippet, query)
+
+        return search_res_idx, cheatsheet.id, cheatsheet.snippet, generated_answer
 
     def add_cheatsheet(self, snippet, section):
         self._invalidate_cache()

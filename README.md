@@ -20,12 +20,18 @@ where each line is matched independently
 (`AND` relation between the lines),
 either in a fuzzy or a full-match fashion.
 
-### Semantic Search
+### Semantic Search and Answer Generation
 
 In addition to the classic fuzzy/keyword-based search,
 a semantic search is also supported.
 Simply describe what you are looking for in a natural language
 and the most relevant cheatsheet will be presented.
+
+It also generates an answer to your search query based on the semantic search result
+using a large language model (LLM) that runs locally.
+This allows for not just finding relevant content,
+but also receiving a direct, AI-generated response
+to your query for a more comprehensive and streamlined experience.
 
 #### Privacy
 
