@@ -8,14 +8,23 @@ except:
 
 class GenAI:
     def __init__(self):
+        # We load the model and tokenizer only when used
+        # so that unittests will run faster.
+        self._tokenizer = None
+        self._model = None
+
+    def _load(self):
         # load pre-trained model and tokenizer
-        self.tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-large")
-        self.model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-large")
+        self._tokenizer = AutoTokenizer.from_pretrained("google/flan-t5-large")
+        self._model = AutoModelForSeq2SeqLM.from_pretrained("google/flan-t5-large")
 
     def generate_answer(self, context, query):
+        if self._model is None or self._tokenizer is None:
+            self._load()
+
         input_text = f"Context: {context}\nQuestion: {query}"
-        inputs = self.tokenizer(input_text, return_tensors="pt", padding=True, truncation=True)
-        outputs = self.model.generate(
+        inputs = self._tokenizer(input_text, return_tensors="pt", padding=True, truncation=True)
+        outputs = self._model.generate(
             inputs['input_ids'],
             attention_mask=inputs['attention_mask'],
             max_length=500,                          # Increase max_length to allow longer answers
@@ -28,7 +37,7 @@ class GenAI:
         )
 
         # decode and clean the generated answer
-        answer = self.tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
+        answer = self._tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
         # clean up any extra tokens
         answer = answer.replace("<|endoftext|>", "")
         return answer

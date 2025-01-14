@@ -79,10 +79,10 @@ class Server:
         most_similar_idx = self._semantic_search.get_similar_cheatsheet(search_res_idx, query, snippets)
         cheatsheet = cheatsheets[most_similar_idx]
 
-        # generate an answer to the query based on the semantic search result
-        generated_answer = self._gen_ai.generate_answer(cheatsheet.snippet, query)
+        return search_res_idx, cheatsheet.id, cheatsheet.snippet
 
-        return search_res_idx, cheatsheet.id, cheatsheet.snippet, generated_answer
+    def generate_answer(self, context, query):
+        return self._gen_ai.generate_answer(context, query)
 
     def add_cheatsheet(self, snippet, section):
         self._invalidate_cache()

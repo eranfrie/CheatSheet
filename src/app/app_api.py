@@ -1,4 +1,5 @@
 import base64
+import json
 import logging
 from enum import Enum
 from urllib.parse import unquote_plus
@@ -21,6 +22,7 @@ class Route (Enum):
     INDEX = "/"
     CHEATSHEETS = "/snippets"
     SEMANTIC_SEARCH = "/semanticSearch"
+    GEN_ANSWER = "/genAnswer"
     ADD_CHEATSHEET = "/add_snippet"
     EDIT_FORM = "/edit"  # edit form (GET)
     EDIT_SNIPPET = "/edit_snippet"  # edit and display all (POST)
@@ -159,7 +161,7 @@ class AppAPI:
                         eval(script.textContent);
                       });
                     }
-                    xhttp.open("GET", "/snippets?pattern=" + btoa(patterns) +
+                    xhttp.open("GET", "/snippets?pattern=" + btoa(patterns).replace(/\\+/g, '-').replace(/\\//g, '_') +
                       "&fuzzy=" + fuzzy +
                       "&favoritesonly=" + favorites_only);
                     xhttp.send();
@@ -203,34 +205,48 @@ class AppAPI:
                 <br>
 
                 <script type="text/javascript">
-                  function semanticSearchEvent()
+                  function semanticSearch(idx)
                   {
                     query = document.getElementById("semanticSearchCheatsheet").value;
                     const xhttp = new XMLHttpRequest();
                     xhttp.onload = function() {
-                      document.getElementById("semantic_search_result_div").innerHTML = this.responseText;
+                      const response = JSON.parse(this.responseText);
+                      document.getElementById("semantic_search_result_div").innerHTML = response.div;
+                      document.getElementById("generated_answer_div").innerHTML = "<h1>Generated answer:</h1><h2>Loading ...</h2>";
 
                       // eval the scripts
                       const scripts = document.querySelectorAll('#semantic_search_result_div script');
                       scripts.forEach(script => {
                         eval(script.textContent);
                       });
+
+                      // second request - to generate an answer based on the semantic search result
+                      const xhttp_2 = new XMLHttpRequest();
+                      xhttp_2.onload = function() {
+                        document.getElementById("generated_answer_div").innerHTML = this.responseText;
+                      }
+
+                      xhttp_2.open("GET", "/genAnswer?context=" + btoa(response.snippet).replace(/\\+/g, '-').replace(/\\//g, '_') + "&query=" + btoa(query).replace(/\\+/g, '-').replace(/\\//g, '_'));
+                      xhttp_2.send();
                     }
 
                     document.getElementById("semantic_search_result_div").innerHTML = "<h2>Loading ...</h2>";
-                    xhttp.open("GET", "/semanticSearch?index=0&query=" + btoa(query));
+                    document.getElementById("generated_answer_div").innerHTML = "";
+                    xhttp.open("GET", "/semanticSearch?index=" + idx + "&query=" + btoa(query).replace(/\\+/g, '-').replace(/\\//g, '_'));
                     xhttp.send();
                   }
 
                   function semanticSearchClear()
                   {
                     document.getElementById("semantic_search_result_div").innerHTML = "";
+                    document.getElementById("generated_answer_div").innerHTML = "";
                   }
                 </script>
 
-                <button class="btn" onclick="semanticSearchEvent()">Search</button>
+                <button class="btn" onclick="semanticSearch(0)">Search</button>
                 <button class="btn" onclick="semanticSearchClear()">Clear</button>
                 <div id="semantic_search_result_div"></div>
+                <div id="generated_answer_div"></div>
             """
 
         def _header():
@@ -364,7 +380,7 @@ class AppAPI:
         def cheatsheet():
             patterns = request.args.get("pattern")
             if patterns:
-                patterns = base64.b64decode(patterns).decode('utf-8')
+                patterns = base64.urlsafe_b64decode(patterns).decode('utf-8')
                 patterns = patterns.splitlines()
             else:
                 patterns = []
@@ -391,10 +407,9 @@ class AppAPI:
                 logger.exception("invalid index argument: index=%s", search_res_idx)
                 return ""
 
-            query = base64.b64decode(query).decode('utf-8')
+            query = base64.urlsafe_b64decode(query).decode('utf-8')
             # search_res_idx may be different than requested if it's out of valid boundaries
-            search_res_idx, cheatsheet_id, snippet, generated_answer = \
-                self.app.do_semantic_search(search_res_idx, query)
+            search_res_idx, cheatsheet_id, snippet = self.app.do_semantic_search(search_res_idx, query)
             if not snippet:
                 return ""
 
@@ -415,31 +430,15 @@ class AppAPI:
                 </div>
 
                 <script>
-                  function update_result(idx) {
-                    query = document.getElementById("semanticSearchCheatsheet").value;
-                    const xhttp = new XMLHttpRequest();
-                    xhttp.onload = function() {
-                      document.getElementById("semantic_search_result_div").innerHTML = this.responseText;
-
-                      // eval the scripts
-                      const scripts = document.querySelectorAll('#semantic_search_result_div script');
-                      scripts.forEach(script => {
-                        eval(script.textContent);
-                      });
-                    }
-                    xhttp.open("GET", "/semanticSearch?index=" + idx + "&query=" + btoa(query));
-                    xhttp.send();
-                  }
-
                   function decreaseNumber() {
             """
-            response += f"update_result({search_res_idx} - 1);"
+            response += f"semanticSearch({search_res_idx} - 1);"
             response += """
                   }
 
                   function increaseNumber() {
             """
-            response += f"update_result({search_res_idx} + 1);"
+            response += f"semanticSearch({search_res_idx} + 1);"
             response += """
                   }
 
@@ -452,16 +451,30 @@ class AppAPI:
             response += to_markdown(snippet)
             response += '<br>'
 
-            response += to_markdown("# Generated answer:")
-            response += generated_answer
-            response += '<br><br>'
-
             response += '<button class="btn" ' \
                 f'onclick="window.location.href=\'{Route.EDIT_FORM.value}?id={cheatsheet_id}\'">' \
                 '<i class="fa fa-edit"></i></button> '
             response += f'<button class="btn" onclick="deleteCheatsheet({cheatsheet_id})">' \
                 '<i class="fa fa-trash"></i></button>'
 
+            j = {
+                "div": response,
+                "snippet": snippet,
+            }
+
+            return json.dumps(j)
+
+        @self.app_api.route(Route.GEN_ANSWER.value)
+        def gen_answer():
+            context = request.args.get("context")
+            context = base64.urlsafe_b64decode(context).decode('utf-8')
+            query = request.args.get("query")
+            query = base64.urlsafe_b64decode(query).decode('utf-8')
+
+            generated_answer = self.app.generate_answer(context, query)
+
+            response = to_markdown("# Generated answer:")
+            response += generated_answer
             return response
 
         @self.app_api.route(Route.INDEX.value)

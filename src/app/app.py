@@ -42,6 +42,9 @@ class App:
     def do_semantic_search(self, search_res_idx, query):
         return self.server.perform_semantic_search(search_res_idx, query)
 
+    def generate_answer(self, context, query):
+        return self.server.generate_answer(context, query)
+
     def add_cheatsheet(self, snippet, section):
         logger.info("got request to add cheatsheet: snippet=%s, section=%s",
                     snippet, section)
