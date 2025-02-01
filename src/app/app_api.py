@@ -8,6 +8,7 @@ from flask import Flask, request
 from markdown import markdown
 
 from utils import opts, version
+from utils.html_utils import html_escape
 from app.app_sections import CheatsheetSection
 
 
@@ -107,7 +108,7 @@ class AppAPI:
                 html += '<input type="hidden" id="snippet_id" name="snippet_id" ' \
                         f'value="{cheatsheet_section.snippet_id}" />'
             html += f'<input type="text" name="section" list="sections" placeholder="Section" ' \
-                    f'size="80" value="{cheatsheet_section.last_section}"><br>' \
+                    f'size="80" value="{html_escape(cheatsheet_section.last_section)}"><br>' \
                     f'<datalist id="sections">'
             for s in sections:
                 html += f'<option>{s}</option>'
