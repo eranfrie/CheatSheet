@@ -125,6 +125,25 @@ class AppAPI:
                     '</form>'
             return html
 
+        def _get_snippet_actions(cheatsheet):
+            """Shared code to return JS code for delete / edit / favorite a snippet."""
+            response = '<button class="btn" ' \
+                f'onclick="window.location.href=\'{Route.EDIT_FORM.value}?id={cheatsheet.id}\'">' \
+                '<i class="fa fa-edit"></i></button> '
+            response += f'<button class="btn" onclick="deleteCheatsheet({cheatsheet.id})">' \
+                '<i class="fa fa-trash"></i></button>'
+
+            star_color = get_favorite_star_color(cheatsheet.is_favorited)
+            response += f'<span id="favoriteStar_{cheatsheet.id}" style="color:{star_color}; cursor:pointer;">&#9733;</span> <!-- Star symbol -->'
+            response += '<script>' \
+                f'document.getElementById("favoriteStar_{cheatsheet.id}").addEventListener("click", function()' \
+                '{' \
+                f'  toggle_favorited({cheatsheet.id});' \
+                '});' \
+              '</script>'
+
+            return response
+
         def _search_section():
             checked = "checked" if self.default_fuzzy_search else ""
             fuzzy_checkbox = f'<input type="checkbox" id="fuzzy" {checked}>'
@@ -322,20 +341,7 @@ class AppAPI:
 
                     cheatsheets_section += "<hr>"
                     cheatsheets_section += f"{md_snippet}<br>"
-                    cheatsheets_section += '<button class="btn" ' \
-                        f'onclick="window.location.href=\'{Route.EDIT_FORM.value}?id={b.id}\'">' \
-                        '<i class="fa fa-edit"></i></button> '
-                    cheatsheets_section += f'<button class="btn" onclick="deleteCheatsheet({b.id})">' \
-                        '<i class="fa fa-trash"></i></button> '
-
-                    star_color = get_favorite_star_color(b.is_favorited)
-                    cheatsheets_section += f'<span id="favoriteStar_{b.id}" style="color:{star_color}; cursor:pointer;">&#9733;</span> <!-- Star symbol -->'
-                    cheatsheets_section += '<script>' \
-                        f'document.getElementById("favoriteStar_{b.id}").addEventListener("click", function()' \
-                        '{' \
-                        f'  toggle_favorited({b.id});' \
-                        '});' \
-                      '</script>'
+                    cheatsheets_section += _get_snippet_actions(b)
 
             else:
                 cheatsheets_section = \
@@ -451,21 +457,7 @@ class AppAPI:
 
             response += to_markdown(cheatsheet.snippet)
             response += '<br>'
-
-            response += '<button class="btn" ' \
-                f'onclick="window.location.href=\'{Route.EDIT_FORM.value}?id={cheatsheet.id}\'">' \
-                '<i class="fa fa-edit"></i></button> '
-            response += f'<button class="btn" onclick="deleteCheatsheet({cheatsheet.id})">' \
-                '<i class="fa fa-trash"></i></button>'
-
-            star_color = get_favorite_star_color(cheatsheet.is_favorited)
-            response += f'<span id="favoriteStar_{cheatsheet.id}" style="color:{star_color}; cursor:pointer;">&#9733;</span> <!-- Star symbol -->'
-            response += '<script>' \
-                f'document.getElementById("favoriteStar_{cheatsheet.id}").addEventListener("click", function()' \
-                '{' \
-                f'  toggle_favorited({cheatsheet.id});' \
-                '});' \
-              '</script>'
+            response += _get_snippet_actions(cheatsheet)
 
             j = {
                 "div": response,
