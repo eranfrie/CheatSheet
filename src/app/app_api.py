@@ -410,8 +410,8 @@ class AppAPI:
 
             query = base64.urlsafe_b64decode(query).decode('utf-8')
             # search_res_idx may be different than requested if it's out of valid boundaries
-            search_res_idx, cheatsheet_id, snippet = self.app.do_semantic_search(search_res_idx, query)
-            if not snippet:
+            search_res_idx, cheatsheet = self.app.do_semantic_search(search_res_idx, query)
+            if not cheatsheet:
                 return ""
 
             # there is a result - render the html
@@ -449,18 +449,27 @@ class AppAPI:
                 </script>
             """
 
-            response += to_markdown(snippet)
+            response += to_markdown(cheatsheet.snippet)
             response += '<br>'
 
             response += '<button class="btn" ' \
-                f'onclick="window.location.href=\'{Route.EDIT_FORM.value}?id={cheatsheet_id}\'">' \
+                f'onclick="window.location.href=\'{Route.EDIT_FORM.value}?id={cheatsheet.id}\'">' \
                 '<i class="fa fa-edit"></i></button> '
-            response += f'<button class="btn" onclick="deleteCheatsheet({cheatsheet_id})">' \
+            response += f'<button class="btn" onclick="deleteCheatsheet({cheatsheet.id})">' \
                 '<i class="fa fa-trash"></i></button>'
+
+            star_color = get_favorite_star_color(cheatsheet.is_favorited)
+            response += f'<span id="favoriteStar_{cheatsheet.id}" style="color:{star_color}; cursor:pointer;">&#9733;</span> <!-- Star symbol -->'
+            response += '<script>' \
+                f'document.getElementById("favoriteStar_{cheatsheet.id}").addEventListener("click", function()' \
+                '{' \
+                f'  toggle_favorited({cheatsheet.id});' \
+                '});' \
+              '</script>'
 
             j = {
                 "div": response,
-                "snippet": snippet,
+                "snippet": cheatsheet.snippet,
             }
 
             return json.dumps(j)
