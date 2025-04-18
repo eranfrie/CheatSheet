@@ -1,15 +1,16 @@
 import base64
 import json
 import logging
+import json
 from enum import Enum
 from urllib.parse import unquote_plus
 
-from flask import Flask, request
+from flask import Flask, request, redirect, url_for, flash, get_flashed_messages
 from markdown import markdown
 
 from utils import opts, version
 from utils.html_utils import html_escape
-from app.app_sections import CheatsheetSection
+from app.app_sections import CheatsheetSection, StatusSection
 
 
 INC_URL_DEFAULT = "false"
@@ -77,6 +78,7 @@ class AppAPI:
         self.default_fuzzy_search = default_fuzzy_search
         self.enable_ai = enable_ai
         self.app_api = Flask(__name__)
+        self.app_api.secret_key = 'secretkey'
 
         def _status_to_color(status):
             return "green" if status.success else "red"
@@ -490,7 +492,21 @@ class AppAPI:
             favorites_only = request.args.get("favoritesonly", FAVORITES_ONLY_DEFAULT)
             favorites_only = favorites_only.lower() == "true"
 
-            return _main_page(None, self.app.display_cheatsheets(patterns, is_fuzzy, favorites_only), None)
+            status_section = None
+            status_msg = get_flashed_messages()
+            if status_msg:
+                status_json = json.loads(status_msg[0])
+                status_section = StatusSection(status_json["success"], status_json["msg"])
+
+            return _main_page(status_section, self.app.display_cheatsheets(patterns, is_fuzzy, favorites_only), None)
+
+        def flash_status_and_redirect(status_section):
+            status_json = {
+                "success": status_section.success,
+                "msg": status_section.msg
+            }
+            flash(json.dumps(status_json))
+            return redirect(url_for('index'))
 
         @self.app_api.route(Route.ADD_CHEATSHEET.value, methods=["POST"])
         def add_cheatsheet():
@@ -499,7 +515,12 @@ class AppAPI:
 
             status_section, display_cheatsheets_section, cheatsheet_section = \
                 self.app.add_cheatsheet(snippet, section)
-            return _main_page(status_section, display_cheatsheets_section, cheatsheet_section)
+
+            if status_section.success:
+                return flash_status_and_redirect(status_section)
+            else:
+                # if request failed, we don't redirect in order to preserve the input fields
+                return _main_page(status_section, display_cheatsheets_section, cheatsheet_section)
 
         @self.app_api.route(Route.PREVIEW.value)
         def preview():
@@ -536,7 +557,8 @@ class AppAPI:
 
             if not status_section.success:
                 return _display_edit_form(snippet, section, snippet_id, status_section)
-            return _main_page(status_section, display_cheatsheets_section, cheatsheet_section)
+
+            return flash_status_and_redirect(status_section)
 
         @self.app_api.route(Route.TOGGLE_FAVORITED.value, methods=["POST"])
         def toggle_facorited():
@@ -548,7 +570,7 @@ class AppAPI:
         def delete_cheatsheet():
             cheatsheet_id = request.form.get("cheatsheet_id")
             status_section, display_section = self.app.delete_cheatsheet(cheatsheet_id)
-            return _main_page(status_section, display_section, None)
+            return flash_status_and_redirect(status_section)
 
         @self.app_api.route(Route.ABOUT.value)
         def about():
