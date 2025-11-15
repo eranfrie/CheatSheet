@@ -153,7 +153,8 @@ class AppAPI:
                 <br>
                 Search:
                 <br>
-                <textarea id="searchCheatsheet" name="searchCheatsheet" rows="3" cols="30"></textarea><br>
+                <input type="text" id="searchCheatsheet" placeholder="Search cheatsheet" size="30" style="padding: 8px; font-size: 14px;"><br><br>
+                <div id="searchTagsContainer" style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; min-height: 32px; align-items: flex-start;"></div>
 
                 """ \
                 + fuzzy_checkbox + \
@@ -170,9 +171,42 @@ class AppAPI:
                 <br>
 
                 <script type="text/javascript">
+                  let searchTerms = [];
+
+                  function renderSearchTags() {
+                    const container = document.getElementById("searchTagsContainer");
+                    container.innerHTML = "";
+
+                    searchTerms.forEach((term, index) => {
+                      const tag = document.createElement("div");
+                      tag.style.cssText = "display: flex; align-items: center; gap: 6px; background-color: #e0e0e0; padding: 6px 10px; border-radius: 20px; font-size: 14px; max-width: 300px;";
+
+                      const text = document.createElement("span");
+                      text.textContent = term;
+                      text.style.cssText = "overflow: hidden; text-overflow: ellipsis; white-space: nowrap;";
+
+                      const removeBtn = document.createElement("button");
+                      removeBtn.textContent = "×";
+                      removeBtn.style.cssText = "background: none; border: none; font-size: 18px; cursor: pointer; padding: 0; color: #666; font-weight: bold; line-height: 1;";
+                      removeBtn.onclick = (e) => {
+                        e.preventDefault();
+                        searchTerms.splice(index, 1);
+                        renderSearchTags();
+                        searchEvent();
+                      };
+
+                      tag.appendChild(text);
+                      tag.appendChild(removeBtn);
+                      container.appendChild(tag);
+                    });
+                  }
+
                   function searchEvent()
                   {
-                    patterns = document.getElementById("searchCheatsheet").value;
+                    terms = searchTerms.slice();
+                    terms.push(document.getElementById("searchCheatsheet").value);
+                    patterns = terms.join("\\n");
+
                     fuzzy = document.getElementById("fuzzy").checked;
                     favorites_only = document.getElementById("favoritesonly").checked;
                     section_pattern = document.getElementById("searchSection").value;
@@ -194,6 +228,19 @@ class AppAPI:
                     xhttp.send();
                   }
 
+                  document.getElementById("searchCheatsheet").addEventListener("keydown", function(e) {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      const term = this.value.trim();
+                      if (term) {
+                        searchTerms.push(term);
+                        this.value = "";
+                        renderSearchTags();
+                        searchEvent();
+                      }
+                    }
+                  });
+
                   fuzzy.addEventListener("input", searchEvent);
                   favoritesonly.addEventListener("input", searchEvent);
                   searchCheatsheet.addEventListener("input", searchEvent);
@@ -207,8 +254,10 @@ class AppAPI:
                     }
                     // ESC - reset search
                     else if (e.key === "Escape") {
+                      searchTerms = [];
                       document.getElementById("searchCheatsheet").value = '';
                       document.getElementById("searchSection").value = '';
+                      renderSearchTags();
                       searchEvent()
                     }
                   }
@@ -222,6 +271,8 @@ class AppAPI:
                     xhttp.open("POST", "/toggleFavorited?cheatsheet_id=" + cheatsheet_id);
                     xhttp.send();
                   }
+
+                  renderSearchTags();
                 </script>
             """
 
