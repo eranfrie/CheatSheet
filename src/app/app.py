@@ -23,18 +23,19 @@ class App:
     def __init__(self, server):
         self.server = server
 
-    def display_cheatsheets(self, patterns, is_fuzzy, favorites_only):
+    def display_cheatsheets(self, patterns, is_fuzzy, favorites_only, section_pattern=None):
         """
         Args:
             pattern (str | None): a pattern to filter results
             is_fuzzy (bool): whether to perform a fuzzy search or regular search
             favorites_only (bool): wjetjer to filter favorited cheatsheets
+            section_pattern (str | None): section to filter by
 
         Returns:
             display_cheatsheets_section: DisplayCheatsheetsSection object
         """
         try:
-            cheatsheets = self.server.get_cheatsheets(patterns, is_fuzzy, favorites_only)
+            cheatsheets = self.server.get_cheatsheets(patterns, is_fuzzy, favorites_only, section_pattern)
             return DisplayCheatsheetsSection(cheatsheets, None)
         except InternalException:
             return DisplayCheatsheetsSection(None, GET_CHEATSHEETS_ERR_MSG)

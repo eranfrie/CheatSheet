@@ -49,11 +49,15 @@ class Server:
         self._cache = cheatsheets
         return self._cache
 
-    def get_cheatsheets(self, patterns, is_fuzzy, favorites_only):
+    def get_cheatsheets(self, patterns, is_fuzzy, favorites_only, section_pattern):
         cheatsheets = self._get_all_cheatsheets()
 
         if favorites_only:
             cheatsheets = [c for c in cheatsheets if c.is_favorited]
+
+        if section_pattern:
+            section_pattern = section_pattern.lower().strip()
+            cheatsheets = [c for c in cheatsheets if c.match_section(section_pattern)]
 
         if not patterns:
             return cheatsheets

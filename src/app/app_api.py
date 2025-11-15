@@ -154,7 +154,6 @@ class AppAPI:
                 Search:
                 <br>
                 <textarea id="searchCheatsheet" name="searchCheatsheet" rows="3" cols="30"></textarea><br>
-                <br>
 
                 """ \
                 + fuzzy_checkbox + \
@@ -166,12 +165,17 @@ class AppAPI:
 
                 <br>
 
+                <input type="text" id="searchSection" placeholder="Search section" size="30"><br>
+
+                <br>
+
                 <script type="text/javascript">
                   function searchEvent()
                   {
                     patterns = document.getElementById("searchCheatsheet").value;
                     fuzzy = document.getElementById("fuzzy").checked;
                     favorites_only = document.getElementById("favoritesonly").checked;
+                    section_pattern = document.getElementById("searchSection").value;
 
                     const xhttp = new XMLHttpRequest();
                     xhttp.onload = function() {
@@ -185,13 +189,15 @@ class AppAPI:
                     }
                     xhttp.open("GET", "/snippets?pattern=" + btoa(patterns).replace(/\\+/g, '-').replace(/\\//g, '_') +
                       "&fuzzy=" + fuzzy +
-                      "&favoritesonly=" + favorites_only);
+                      "&favoritesonly=" + favorites_only +
+                      "&sectionPattern=" + btoa(section_pattern));
                     xhttp.send();
                   }
 
                   fuzzy.addEventListener("input", searchEvent);
                   favoritesonly.addEventListener("input", searchEvent);
                   searchCheatsheet.addEventListener("input", searchEvent);
+                  searchSection.addEventListener("input", searchEvent);
 
                   window.onkeydown = function(e) {
                     // ctrl-b - set focus on search input
@@ -202,6 +208,7 @@ class AppAPI:
                     // ESC - reset search
                     else if (e.key === "Escape") {
                       document.getElementById("searchCheatsheet").value = '';
+                      document.getElementById("searchSection").value = '';
                       searchEvent()
                     }
                   }
@@ -400,7 +407,13 @@ class AppAPI:
             favorites_only = request.args.get("favoritesonly", FAVORITES_ONLY_DEFAULT)
             favorites_only = favorites_only.lower() == "true"
 
-            return _cheatsheets_section(self.app.display_cheatsheets(patterns, is_fuzzy, favorites_only))
+            section_pattern = request.args.get("sectionPattern", "")
+            if section_pattern:
+                section_pattern = base64.b64decode(section_pattern).decode('utf-8')
+            else:
+                section_pattern = None
+
+            return _cheatsheets_section(self.app.display_cheatsheets(patterns, is_fuzzy, favorites_only, section_pattern))
 
         @self.app_api.route(Route.SEMANTIC_SEARCH.value)
         def semantic_search():
@@ -492,13 +505,15 @@ class AppAPI:
             favorites_only = request.args.get("favoritesonly", FAVORITES_ONLY_DEFAULT)
             favorites_only = favorites_only.lower() == "true"
 
+            section_pattern = request.args.get("sectionPattern", None)
+
             status_section = None
             status_msg = get_flashed_messages()
             if status_msg:
                 status_json = json.loads(status_msg[0])
                 status_section = StatusSection(status_json["success"], status_json["msg"])
 
-            return _main_page(status_section, self.app.display_cheatsheets(patterns, is_fuzzy, favorites_only), None)
+            return _main_page(status_section, self.app.display_cheatsheets(patterns, is_fuzzy, favorites_only, section_pattern), None)
 
         def flash_status_and_redirect(status_section):
             status_json = {

@@ -73,3 +73,19 @@ class Cheatsheet:
         """
         search_method = is_match if is_fuzzy else _regular_search
         return search_method(pattern, self.snippet_lower) is not None
+
+    def match_section(self, section_pattern):
+        """
+        Check if cheatsheet's section matches the section pattern (exact match).
+
+        Assumes section_pattern is lowercased.
+
+        Args:
+            section_pattern (str): section pattern to match against (lowercased)
+
+        Returns:
+            bool: True if cheatsheet's section matches the pattern, False otherwise
+        """
+        if not section_pattern:
+            return True
+        return self.section_lower == section_pattern

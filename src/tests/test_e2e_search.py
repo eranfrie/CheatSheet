@@ -103,3 +103,48 @@ class TestE2eSearch(TestE2eBase):
         params = {"pattern": pattern, "fuzzy": "false"}
         response = requests.get(URL.INDEX.value, params=params)
         self._compare_num_cheatsheets(response, 0, db_avail=False)
+
+    def test_section_filter_only(self):
+        self._add_cheatsheet_to_db("test_snippet_1", "test_section_1")
+        self._add_cheatsheet_to_db("test_snippet_2", "test_section_2")
+        self._add_cheatsheet_to_db("test_snippet_3", "test_section_3")
+        response = requests.get(URL.INDEX.value)
+        self._compare_num_cheatsheets(response, 3)
+
+        params = {"sectionPattern": "test_section_1"}
+        response = requests.get(URL.INDEX.value, params=params)
+        self._compare_num_cheatsheets(response, 1, db_avail=False)
+
+    def test_section_filter_case_insensitive(self):
+        self._add_cheatsheet_to_db("test_snippet_1", "TEST_SECTION_1")
+        self._add_cheatsheet_to_db("test_snippet_2", "test_section_2")
+        response = requests.get(URL.INDEX.value)
+        self._compare_num_cheatsheets(response, 2)
+
+        params = {"sectionPattern": "test_section_1"}
+        response = requests.get(URL.INDEX.value, params=params)
+        self._compare_num_cheatsheets(response, 1, db_avail=False)
+
+    def test_section_filter_with_pattern(self):
+        self._add_cheatsheet_to_db("test_snippet_1", "TEST_SECTION_1")
+        self._add_cheatsheet_to_db("test_snippet_2", "test_section_2")
+        self._add_cheatsheet_to_db("test_snippet_3", "test_section_3")
+
+        response = requests.get(URL.INDEX.value)
+        self._compare_num_cheatsheets(response, 3)
+
+        # Filter by section and pattern
+        pattern = "snippet_1"
+        params = {"pattern": pattern, "sectionPattern": "test_section_1"}
+        response = requests.get(URL.INDEX.value, params=params)
+        self._compare_num_cheatsheets(response, 1, db_avail=False)
+
+    def test_section_filter_no_match(self):
+        self._add_cheatsheet_to_db("test_snippet_1", "TEST_SECTION_1")
+        self._add_cheatsheet_to_db("test_snippet_2", "test_section_2")
+        response = requests.get(URL.INDEX.value)
+        self._compare_num_cheatsheets(response, 2)
+
+        params = {"sectionPattern": "nonexistent_section"}
+        response = requests.get(URL.INDEX.value, params=params)
+        self._compare_num_cheatsheets(response, 0, db_avail=False)
